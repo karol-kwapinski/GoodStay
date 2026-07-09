@@ -46,7 +46,7 @@ The system is built using Spring and follows a layered architecture (Controller 
 1. Clone repository
    git clone https://github.com/karol-kwapinski/GoodStay.git
 
-2. Configure database in application.properties
+2. Configure database in HibernatePersistenceConfiguration class
 
 3. Run application
    mvn spring-boot:run
