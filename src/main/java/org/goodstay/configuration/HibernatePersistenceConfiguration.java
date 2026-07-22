@@ -43,7 +43,7 @@ public class HibernatePersistenceConfiguration {
         Properties properties = new Properties();
         properties.put("hibernate.show_sql", "false");
         properties.put("hibernate.hbm2ddl.auto", "update");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.postgreSQLDialect");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put("hibernate.default_schema", "public");
 
         properties.put(
