@@ -19,14 +19,21 @@ The system is built using Spring and follows a layered architecture (Controller 
 
 ## Tech Stack
 
+### Backend
 - Java 25
-- Spring
+- Spring Framework
 - Spring Data JPA
 - Hibernate
 - PostgreSQL
 - Maven
 - Tomcat
+
+### Frontend
 - React
+
+### Testing
+- JUnit 5
+- Mockito
 
 ---
 
