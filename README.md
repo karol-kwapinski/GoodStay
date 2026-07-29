@@ -41,12 +41,26 @@ The system is built using Spring and follows a layered architecture (Controller 
 
 ---
 
+The application uses PostgreSQL database running in Docker.
+
+### Requirements
+
+- Docker installed
+- Docker Compose installed
+
 ## How to run
 
 1. Clone repository
    git clone https://github.com/karol-kwapinski/GoodStay.git
 
-2. Configure database in HibernatePersistenceConfiguration class
+2. Start database
+   Run from the project root directory:
+
+   docker compose up -d
+
+   To run integration tests start test PostgreSQL:
+   
+   docker compose -f docker-compose-test.yml up -d
 
 3. Run application
    mvn spring-boot:run
