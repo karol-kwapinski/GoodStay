@@ -4,15 +4,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(PasswordMismatchException.class)
-    ResponseEntity<Void> handlePasswordMismatch() {
+    public ResponseEntity<Void> handlePasswordMismatch() {
         return ResponseEntity.badRequest().build();
     }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    ResponseEntity<Void> handleEmailExists() {
-        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    public ResponseEntity<Map<String, String>> handleEmailExists() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of("code", "EMAIL_ALREADY_EXISTS"));
     }
 }

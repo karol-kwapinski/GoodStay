@@ -6,7 +6,7 @@ import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.PasswordMismatchException;
 import org.goodstay.model.User;
 import org.goodstay.model.UserRole;
-import org.goodstay.respository.UserRepository;
+import org.goodstay.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

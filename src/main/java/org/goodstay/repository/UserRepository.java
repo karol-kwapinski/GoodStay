@@ -1,4 +1,4 @@
-package org.goodstay.respository;
+package org.goodstay.repository;
 
 import org.goodstay.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

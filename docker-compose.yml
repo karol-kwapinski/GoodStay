@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: goodstay-postgres
+    environment:
+      POSTGRES_DB: goodstay
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"

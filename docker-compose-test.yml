@@ -1,0 +1,10 @@
+services:
+  postgres-test:
+    image: postgres:18
+    container_name: goodstay-postgres-test
+    environment:
+      POSTGRES_DB: goodstay_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"

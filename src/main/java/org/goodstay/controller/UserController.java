@@ -19,8 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    ResponseEntity<Void> register(@Valid @RequestBody RegisterRequestDTO request) {
-
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequestDTO request) {
         userService.register(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();

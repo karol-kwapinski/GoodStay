@@ -5,7 +5,7 @@ import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.PasswordMismatchException;
 import org.goodstay.model.User;
 import org.goodstay.model.UserRole;
-import org.goodstay.respository.UserRepository;
+import org.goodstay.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
