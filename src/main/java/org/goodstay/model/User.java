@@ -1,6 +1,7 @@
 package org.goodstay.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -15,23 +16,25 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(unique = true, nullable = false)
+    @Email
     @Size(min = 2, max = 30)
     private String email;
 
     @NotNull
+    @Size(min = 8, max = 100)
     private String password;
 
-    @Size(min = 2, max = 60)
+    @Size(max = 60)
     private String firstName;
 
-    @Size(min = 2, max = 60)
+    @Size(max = 60)
     private String lastName;
 
-    @Size(min = 2, max = 60)
+    @Size(max = 60)
     private String phoneNumber;
 
-    @Size(min = 2, max = 60)
+    @Size(max = 60)
     private String country;
 
     @NotNull

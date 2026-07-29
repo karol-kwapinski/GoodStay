@@ -7,7 +7,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan("org.goodstay")
-public class SpringConfiguration implements WebMvcConfigurer {
+@ComponentScan(basePackages = {
+        "org.goodstay.controller"
+})
+public class WebConfiguration implements WebMvcConfigurer {
 
 }

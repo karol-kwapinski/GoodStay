@@ -2,7 +2,9 @@ package org.goodstay.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -23,14 +25,26 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class HibernatePersistenceConfiguration {
 
+    @Value("${db.url}")
+    private String url;
+
+    @Value("${db.username}")
+    private String username;
+
+    @Value("${db.password}")
+    private String password;
+
+    @Value("${hibernate.ddl:update}")
+    private String ddl;
+
     @Bean(name = "dataSource")
     public DataSource getDataSource() {
 
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:postgresql://localhost:5432/goodStay");
-        config.setUsername("postgres");
-        config.setPassword("admin");
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
         config.setDriverClassName("org.postgresql.Driver");
 
         config.setMaximumPoolSize(10);
@@ -42,8 +56,8 @@ public class HibernatePersistenceConfiguration {
     private Properties getHibernateProperties() {
         Properties properties = new Properties();
         properties.put("hibernate.show_sql", "false");
-        properties.put("hibernate.hbm2ddl.auto", "update");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.postgreSQLDialect");
+        properties.put("hibernate.hbm2ddl.auto", ddl);
+        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put("hibernate.default_schema", "public");
 
         properties.put(
