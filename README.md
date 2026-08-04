@@ -48,32 +48,59 @@ The system is built using Spring and follows a layered architecture (Controller 
 
 ---
 
-The application uses PostgreSQL database running in Docker.
+## Requirements
 
-### Requirements
+- Java 25
+- Maven
+- Apache Tomcat 11
+- Docker & Docker Compose
+- Node.js and npm
 
-- Docker installed
-- Docker Compose installed
+---
 
 ## How to run
 
-1. Clone repository
-   git clone https://github.com/karol-kwapinski/GoodStay.git
+### 1. Clone the repository
 
-2. Start database
-   Run from the project root directory:
+```bash
+git clone https://github.com/karol-kwapinski/GoodStay.git
+cd GoodStay
+```
 
-   docker compose up -d
+### 2. Start the database
 
-   To run integration tests start test PostgreSQL:
-   
-   docker compose -f docker-compose-test.yml up -d
+```bash
+docker compose up -d
+```
 
-3. Run application
-   mvn spring-boot:run
-   npm run dev
-   
----
+For integration tests start the test database:
+
+```bash
+docker compose -f docker-compose-test.yml up -d
+```
+
+### 3. Build the backend
+
+```bash
+mvn clean package
+```
+
+Deploy the generated `.war` file to Apache Tomcat and start the server.
+
+Alternatively, you can run the project using the configured Tomcat run configuration in IntelliJ IDEA.
+
+### 4. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Default ports
+
+- Backend: http://localhost:8082
+- Frontend: http://localhost:5173
 
 ## Author
 
