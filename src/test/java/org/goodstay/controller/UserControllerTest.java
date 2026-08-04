@@ -1,7 +1,10 @@
 package org.goodstay.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.goodstay.dto.RegisterRequestDTO;
+import org.goodstay.dto.CurrentUserDto;
+import org.goodstay.dto.LoginRequestDto;
+import org.goodstay.dto.LoginResultDto;
+import org.goodstay.dto.RegisterRequestDto;
 import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.GlobalExceptionHandler;
 import org.goodstay.service.UserService;
@@ -15,14 +18,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,8 +47,8 @@ class UserControllerTest {
 
     private ObjectMapper objectMapper;
 
-    private RegisterRequestDTO createValidRequest() {
-        return new RegisterRequestDTO(
+    private RegisterRequestDto createValidRequest() {
+        return new RegisterRequestDto(
                 "adam@gmail.com",
                 "pass1234",
                 "pass1234",
@@ -54,7 +63,7 @@ class UserControllerTest {
         return Stream.of(
                 Arguments.of(
                         "empty email",
-                        new RegisterRequestDTO(
+                        new RegisterRequestDto(
                                 "",
                                 "pass1234",
                                 "pass1234",
@@ -66,7 +75,7 @@ class UserControllerTest {
                 ),
                 Arguments.of(
                         "empty password",
-                        new RegisterRequestDTO(
+                        new RegisterRequestDto(
                                 "adam@gmail.com",
                                 "",
                                 "",
@@ -78,7 +87,7 @@ class UserControllerTest {
                 ),
                 Arguments.of(
                         "invalid email format",
-                        new RegisterRequestDTO(
+                        new RegisterRequestDto(
                                 "adamgmail.com",
                                 "pass1234",
                                 "pass1234",
@@ -90,7 +99,7 @@ class UserControllerTest {
                 ),
                 Arguments.of(
                         "invalid password format",
-                        new RegisterRequestDTO(
+                        new RegisterRequestDto(
                                 "adam@gmail.com",
                                 "pass",
                                 "pass",
@@ -120,7 +129,7 @@ class UserControllerTest {
 
     @Test
     void shouldRegisterNewUser() throws Exception {
-        RegisterRequestDTO request = createValidRequest();
+        RegisterRequestDto request = createValidRequest();
 
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -133,7 +142,7 @@ class UserControllerTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidRegisterRequests")
     void shouldThrow400WhenRequestIsInvalid(String description,
-                                            RegisterRequestDTO request) throws Exception {
+                                            RegisterRequestDto request) throws Exception {
 
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +155,7 @@ class UserControllerTest {
     @Test
     void shouldThrow409WhenEmailAlreadyExists() throws Exception {
 
-        RegisterRequestDTO request = createValidRequest();
+        RegisterRequestDto request = createValidRequest();
 
         doThrow(new EmailAlreadyExistsException())
                 .when(userService)
@@ -157,4 +166,106 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
     }
+
+    @Test
+    void shouldLoginUser() throws Exception {
+
+        LoginRequestDto request = new LoginRequestDto(
+                "jan.nowak@gmail.com",
+                "pass1234"
+        );
+
+        CurrentUserDto currentUser = new CurrentUserDto(
+                "jan.nowak@gmail.com",
+                "Jan",
+                "USER"
+        );
+
+        LoginResultDto result = new LoginResultDto(
+                "validToken",
+                        currentUser,
+                        3600000
+        );
+
+        when(userService.login(request))
+                .thenReturn(result);
+
+        mockMvc.perform(post("/api/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(userService).login(request);
+
+    }
+
+    @Test
+    void shouldReturn401WhenCredentialsAreInvalid() throws Exception {
+
+        LoginRequestDto request = new LoginRequestDto(
+                "jan.nowak@gmail.com",
+                "pass1234"
+        );
+
+        when(userService.login(request))
+                .thenThrow(new BadCredentialsException("Invalid credentials"));
+
+        mockMvc.perform(post("/api/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+
+        verify(userService).login(request);
+    }
+
+    @Test
+    void shouldLogoutUser() throws Exception {
+
+        mockMvc.perform(post("/api/users/logout"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnCurrentUser() throws Exception {
+        CurrentUserDto dto = new CurrentUserDto(
+                "jan.nowak@gmail.com",
+                "Jan",
+                "USER"
+        );
+
+        when(userService.getCurrentUser(any(Authentication.class)))
+                .thenReturn(dto);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "jan.nowak@gmail.com",
+                null
+        );
+
+        mockMvc.perform(get("/api/users/me")
+                .principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email")
+                        .value("jan.nowak@gmail.com"));
+
+        verify(userService).getCurrentUser(any(Authentication.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserIsNotInDatabase() throws Exception {
+
+        when(userService.getCurrentUser(any(Authentication.class)))
+                .thenThrow(new NoSuchElementException());
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "jan.kowalski2@gmail.com",
+                null
+        );
+
+        mockMvc.perform(get("/api/users/me")
+                .principal(authentication))
+                .andExpect(status().isNotFound());
+
+        verify(userService).getCurrentUser(any(Authentication.class));
+    }
+
 }

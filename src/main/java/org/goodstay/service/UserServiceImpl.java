@@ -1,25 +1,44 @@
 package org.goodstay.service;
 
-import lombok.RequiredArgsConstructor;
-import org.goodstay.dto.RegisterRequestDTO;
+import org.goodstay.dto.LoginRequestDto;
+import org.goodstay.dto.CurrentUserDto;
+import org.goodstay.dto.LoginResultDto;
+import org.goodstay.dto.RegisterRequestDto;
 import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.PasswordMismatchException;
 import org.goodstay.model.User;
 import org.goodstay.model.UserRole;
 import org.goodstay.repository.UserRepository;
+import org.goodstay.security.JWTUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
+    private final long expirationTime;
+
+    public UserServiceImpl(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JWTUtil jwtUtil,
+            @Value("${jwt.expiration}") long expirationTime
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.expirationTime = expirationTime;
+    }
 
     @Transactional
-    public void register(RegisterRequestDTO request) {
+    public void register(RegisterRequestDto request) {
 
         if (!request.password().equals(request.confirmPassword())) {
             throw new PasswordMismatchException();
@@ -41,5 +60,39 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
+    }
+
+    public LoginResultDto login(LoginRequestDto request) {
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        String token = jwtUtil.generateToken(user);
+
+        CurrentUserDto currentUserDto = new CurrentUserDto(
+                user.getEmail(),
+                user.getFirstName(),
+                user.getRole().name());
+
+        return new LoginResultDto(
+                token,
+                currentUserDto,
+                expirationTime
+        );
+    }
+
+    public CurrentUserDto getCurrentUser(Authentication authentication) {
+
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        return new CurrentUserDto(
+                user.getEmail(),
+                user.getFirstName(),
+                user.getRole().name()
+        );
     }
 }
