@@ -33,6 +33,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<CurrentUserDto> login(@RequestBody LoginRequestDto request) {
+
         LoginResultDto loginResultDto = userService.login(request);
 
         ResponseCookie cookie = ResponseCookie.from("accessToken", loginResultDto.token())

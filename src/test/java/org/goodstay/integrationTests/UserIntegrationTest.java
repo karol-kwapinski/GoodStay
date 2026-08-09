@@ -2,7 +2,6 @@ package org.goodstay.integrationTests;
 
 import jakarta.transaction.Transactional;
 import org.goodstay.configuration.ApplicationConfiguration;
-import org.goodstay.dto.CurrentUserDto;
 import org.goodstay.dto.LoginRequestDto;
 import org.goodstay.dto.LoginResultDto;
 import org.goodstay.dto.RegisterRequestDto;
@@ -15,8 +14,6 @@ import org.goodstay.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
