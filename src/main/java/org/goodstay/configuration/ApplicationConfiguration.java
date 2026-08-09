@@ -9,7 +9,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
         "org.goodstay.service",
         "org.goodstay.repository",
         "org.goodstay.exception",
-        "org.goodstay.security"
+        "org.goodstay.security",
+        "org.goodstay.mapper"
 })
 @Import({HibernatePersistenceConfiguration.class, PasswordConfig.class})
 public class ApplicationConfiguration {
