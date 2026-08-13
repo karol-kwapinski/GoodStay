@@ -39,6 +39,15 @@ public class Hotel {
     @NotNull
     private Integer stars;
 
+    @NotNull
+    private LocalTime checkInFrom;
+
+    @NotNull
+    private LocalTime checkInUntil;
+
+    @NotNull
+    private LocalTime checkOutUntil;
+
     private Double userRating;
 
     @NotNull

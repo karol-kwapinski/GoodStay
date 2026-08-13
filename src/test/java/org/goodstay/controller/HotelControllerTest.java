@@ -94,8 +94,8 @@ public class HotelControllerTest {
 
         HotelListRequestDto request = new HotelListRequestDto(
                 "Warsaw",
-                LocalDate.of(2026, 9, 15),
-                LocalDate.of(2026, 9, 25)
+                LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(15)
         );
 
         HotelListResponseDto response = new HotelListResponseDto(

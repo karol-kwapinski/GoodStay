@@ -24,6 +24,11 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
+                .authorizeHttpRequests(auth ->
+                        auth
+                                .requestMatchers("/api/users/me").authenticated()
+                                .anyRequest().permitAll()
+                )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
