@@ -12,6 +12,7 @@ export default function ReservationPage() {
                         <th>Room type</th>
                         <th>Price per night</th>
                         <th>Number of guests</th>
+                        <th>Number of rooms</th>
                     </tr>
                 </thead>
 
@@ -21,6 +22,7 @@ export default function ReservationPage() {
                             <td>{room.roomType}</td>
                             <td>{room.pricePerNight}</td>
                             <td>{room.maxNumberOfGuests}</td>
+                            <td>{room.numberOfRooms}</td>
                         </tr>
                     ))}
                 </tbody>

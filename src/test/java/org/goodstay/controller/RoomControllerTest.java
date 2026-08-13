@@ -92,7 +92,8 @@ public class RoomControllerTest {
                 1L,
                 BigDecimal.valueOf(150.00),
                 "Bedroom",
-                3
+                3,
+                2
         );
 
         when(roomService.getAllRoomsByDatesAndHotelId(
@@ -113,7 +114,9 @@ public class RoomControllerTest {
                     .andExpect(jsonPath("$[0].roomType")
                             .value(response.roomType()))
                     .andExpect(jsonPath("$[0].maxNumberOfGuests")
-                            .value(response.maxNumberOfGuests()));
+                            .value(response.maxNumberOfGuests()))
+                    .andExpect(jsonPath("$[0].numberOfRooms")
+                            .value(response.numberOfRooms()));
 
         verify(roomService).getAllRoomsByDatesAndHotelId(
                 1L,

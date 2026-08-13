@@ -5,6 +5,7 @@ import org.goodstay.dto.RoomListResponseDto;
 import org.goodstay.exception.InvalidDateRangeException;
 import org.goodstay.mapper.RoomMapper;
 import org.goodstay.model.Room;
+import org.goodstay.model.RoomType;
 import org.goodstay.repository.RoomRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,13 +35,19 @@ public class RoomServiceTest {
 
     @Test
     void shouldReturnAllRoomsByDatesAndHotelId() {
-        Room room = new Room();
+        Room room1 = new Room();
+        Room room2 = new Room();
+
+        RoomType roomType = new RoomType();
+        room1.setRoomType(roomType);
+        room2.setRoomType(roomType);
 
         RoomListResponseDto dto = new RoomListResponseDto(
                 1L,
                 BigDecimal.valueOf(150.00),
                 "bedroom",
-                2
+                2,
+                3
         );
 
         RoomListRequestDto request = new RoomListRequestDto(
@@ -52,9 +60,9 @@ public class RoomServiceTest {
                 request.checkInDate(),
                 request.checkOutDate()
         ))
-                .thenReturn(List.of(room));
+                .thenReturn(List.of(room1, room2));
 
-        when(roomMapper.toDto(List.of(room)))
+        when(roomMapper.toDto(Map.of(roomType, List.of(room1, room2))))
                 .thenReturn(List.of(dto));
 
         List<RoomListResponseDto> response = roomService.getAllRoomsByDatesAndHotelId(
@@ -71,7 +79,7 @@ public class RoomServiceTest {
                 request.checkOutDate()
         );
 
-        verify(roomMapper).toDto(List.of(room));
+        verify(roomMapper).toDto(Map.of(roomType, List.of(room1, room2)));
 
     }
 
@@ -94,6 +102,6 @@ public class RoomServiceTest {
                 request.checkOutDate()
         );
 
-        verify(roomMapper, never()).toDto(anyList());
+        verify(roomMapper, never()).toDto(anyMap());
     }
 }

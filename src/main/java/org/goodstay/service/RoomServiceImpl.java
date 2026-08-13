@@ -6,10 +6,13 @@ import org.goodstay.dto.RoomListResponseDto;
 import org.goodstay.exception.InvalidDateRangeException;
 import org.goodstay.mapper.RoomMapper;
 import org.goodstay.model.Room;
+import org.goodstay.model.RoomType;
 import org.goodstay.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,9 @@ public class RoomServiceImpl implements RoomService {
                 request.checkOutDate()
         );
 
-        return roomMapper.toDto(rooms);
+        Map<RoomType, List<Room>> roomsByType = rooms.stream()
+                .collect(Collectors.groupingBy(Room::getRoomType));
+
+        return roomMapper.toDto(roomsByType);
     }
 }
