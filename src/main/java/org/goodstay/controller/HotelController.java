@@ -27,10 +27,6 @@ public class HotelController {
 
         List<HotelListResponseDto> response = hotelService.getAvailableHotels(request);
 
-        for(HotelListResponseDto dto : response) {
-            System.out.println(dto.cityName() + " " + dto.buildingNumber());
-        }
-
         return ResponseEntity.ok(response);
     }
 }
