@@ -1,5 +1,5 @@
-import {postApi} from "../config/apiClient.js";
+import {getApi} from "../config/apiClient.js";
 
-export const getAllHotelsByReservationDateAndCityName = (form) => {
-    return postApi("/api/hotels/getAllHotelsByResAndCity", form);
+export const getAllHotelsByReservationDateAndCityName = (cityName, checkInDate, checkOutDate) => {
+    return getApi(`/api/hotels/getAllHotelsByResAndCity?cityName=${cityName}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`);
 }

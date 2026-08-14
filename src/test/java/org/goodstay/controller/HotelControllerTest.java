@@ -1,7 +1,5 @@
 package org.goodstay.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.goodstay.dto.HotelListRequestDto;
 import org.goodstay.dto.HotelListResponseDto;
 import org.goodstay.exception.GlobalExceptionHandler;
@@ -16,7 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -27,7 +24,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,8 +38,6 @@ public class HotelControllerTest {
     private HotelController hotelController;
 
     private MockMvc mockMvc;
-
-    private ObjectMapper objectMapper;
 
     static Stream<Arguments> invalidGetHotelsRequests() {
         return Stream.of(
@@ -84,9 +79,6 @@ public class HotelControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
-
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Test
@@ -111,9 +103,10 @@ public class HotelControllerTest {
         when(hotelService.getAvailableHotels(request))
                 .thenReturn(List.of(response));
 
-        mockMvc.perform(post("/api/hotels/getAllHotelsByResAndCity")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(get("/api/hotels/getAllHotelsByResAndCity")
+            .param("cityName", request.cityName())
+            .param("checkInDate", request.checkInDate().toString())
+            .param("checkOutDate", request.checkOutDate().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -138,9 +131,10 @@ public class HotelControllerTest {
     void shouldThrowBadRequestWhenDatesOrCityNameIsInvalid(
             String description, HotelListRequestDto request) throws Exception {
 
-        mockMvc.perform(post("/api/hotels/getAllHotelsByResAndCity")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(get("/api/hotels/getAllHotelsByResAndCity")
+            .param("cityName", request.cityName())
+            .param("checkInDate", request.checkInDate().toString())
+            .param("checkOutDate", request.checkOutDate().toString()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -156,9 +150,10 @@ public class HotelControllerTest {
             when(hotelService.getAvailableHotels(request))
                     .thenThrow(new InvalidDateRangeException());
 
-            mockMvc.perform(post("/api/hotels/getAllHotelsByResAndCity")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(get("/api/hotels/getAllHotelsByResAndCity")
+                .param("cityName", request.cityName())
+                .param("checkInDate", request.checkInDate().toString())
+                .param("checkOutDate", request.checkOutDate().toString()))
                     .andExpect(status().isBadRequest());
 
             verify(hotelService).getAvailableHotels(request);
