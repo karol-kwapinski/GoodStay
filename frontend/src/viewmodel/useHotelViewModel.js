@@ -42,7 +42,11 @@ export function useHotelViewModel() {
 
         try {
             setLoading(true)
-            const response = await getAllHotelsByReservationDateAndCityName(form);
+            const response = await getAllHotelsByReservationDateAndCityName(
+                form.cityName,
+                form.checkInDate,
+                form.checkOutDate
+            );
             setHotelList(response);
             setError(null);
         } catch (error) {
