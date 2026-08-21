@@ -1,32 +1,55 @@
-import {useRoomViewModel} from "../viewmodel/useRoomViewModel.js";
+import {useReservationViewModel} from "../viewmodel/useReservationViewModel.js";
+import Header from "./components/Header.jsx";
 
 export default function ReservationPage() {
 
-    const vm = useRoomViewModel();
+    const vm = useReservationViewModel();
 
     return (
         <div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Room type</th>
-                        <th>Price per night</th>
-                        <th>Number of guests</th>
-                        <th>Number of rooms</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {vm.rooms.map((room) => (
-                        <tr key={room.id}>
-                            <td>{room.roomType}</td>
-                            <td>{room.pricePerNight}</td>
-                            <td>{room.maxNumberOfGuests}</td>
-                            <td>{room.numberOfRooms}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Header />
+            <form onSubmit={vm.handleSubmit}>
+                <input
+                    name="firstName"
+                    value={vm.form.firstName}
+                    onChange={vm.handleChange}
+                    placeholder="First Name"
+                />
+                <input
+                    name="lastName"
+                    value={vm.form.lastName}
+                    onChange={vm.handleChange}
+                    placeholder="Last Name"
+                />
+                <input
+                    name="email"
+                    type="email"
+                    value={vm.form.email}
+                    onChange={vm.handleChange}
+                    placeholder="E-mail"
+                />
+                <input
+                    name="phoneNumber"
+                    value={vm.form.phoneNumber}
+                    onChange={vm.handleChange}
+                    placeholder="Phone number"
+                />
+                <input
+                    name="country"
+                    value={vm.form.country}
+                    onChange={vm.handleChange}
+                    placeholder="Country"
+                />
+                <button type="submit">
+                    Pay now
+                </button>
+            </form>
+            {vm.error && (
+                <div>
+                    {vm.error}
+                </div>
+            )}
+            <p>Total price: {vm.totalPrice}</p>
         </div>
     )
 }

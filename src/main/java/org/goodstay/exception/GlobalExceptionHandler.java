@@ -51,4 +51,45 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DuplicateRoomException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateRoomException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("code", "DUPLICATE_ROOMS")
+        );
+    }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleRoomNotFoundException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of("code", "ROOM_NOT_FOUND")
+        );
+    }
+
+    @ExceptionHandler(RoomNotAvailableException.class)
+    public ResponseEntity<Map<String, String>> handleRoomNotAvailableException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of("code", "ROOM_NOT_AVAILABLE")
+        );
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of("code", "USER_NOT_FOUND")
+        );
+    }
+
+    @ExceptionHandler(InvalidRoomTypeSelectionException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRoomTypeSelectionException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("code", "INVALID_ROOM_TYPE")
+        );
+    }
+
+    @ExceptionHandler(InvalidRoomQuantityException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRoomQuantityException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("code", "INVALID_ROOM_QUANTITY")
+        );
+    }
 }

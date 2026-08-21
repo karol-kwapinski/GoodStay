@@ -76,6 +76,9 @@ public class UserServiceImpl implements UserService {
         CurrentUserDto currentUserDto = new CurrentUserDto(
                 user.getEmail(),
                 user.getFirstName(),
+                user.getLastName(),
+                user.getPhoneNumber(),
+                user.getCountry(),
                 user.getRole().name());
 
         return new LoginResultDto(
@@ -92,6 +95,9 @@ public class UserServiceImpl implements UserService {
         return new CurrentUserDto(
                 user.getEmail(),
                 user.getFirstName(),
+                user.getLastName(),
+                user.getPhoneNumber(),
+                user.getCountry(),
                 user.getRole().name()
         );
     }

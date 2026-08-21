@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -178,6 +179,9 @@ class UserControllerTest {
         CurrentUserDto currentUser = new CurrentUserDto(
                 "jan.nowak@gmail.com",
                 "Jan",
+                "Nowak",
+                "333444555",
+                "Poland",
                 "USER"
         );
 
@@ -230,6 +234,9 @@ class UserControllerTest {
         CurrentUserDto dto = new CurrentUserDto(
                 "jan.nowak@gmail.com",
                 "Jan",
+                "Nowak",
+                "333444555",
+                "Poland",
                 "USER"
         );
 
