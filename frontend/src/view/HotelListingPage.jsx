@@ -1,11 +1,13 @@
 import {useHotelViewModel} from "../viewmodel/useHotelViewModel.js";
 import {Link} from "react-router-dom";
+import Header from "./components/Header.jsx";
 
 export default function HotelListingPage() {
 
     const vm = useHotelViewModel();
     return (
         <>
+            <Header />
             <form onSubmit={vm.handleSubmit}>
                 <input
                     name="cityName"
@@ -48,7 +50,7 @@ export default function HotelListingPage() {
                     {vm.hotelList.map((hotel) => (
                         <Link
                             key={hotel.id}
-                            to={`/reservation/${hotel.id}?checkInDate=${vm.form.checkInDate}&checkOutDate=${vm.form.checkOutDate}`}
+                            to={`/rooms/${hotel.id}?checkInDate=${vm.form.checkInDate}&checkOutDate=${vm.form.checkOutDate}`}
                         >
                             <div>
                                 <h2>{hotel.name}</h2>

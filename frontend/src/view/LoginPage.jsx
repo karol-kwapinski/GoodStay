@@ -1,8 +1,10 @@
 import {useLoginViewModel} from "../viewmodel/useLoginViewModel.js";
+import {useNavigate} from "react-router-dom";
 
 export default function LoginPage() {
 
     const vm = useLoginViewModel();
+    const navigate = useNavigate();
 
     return (
       <>
@@ -28,7 +30,11 @@ export default function LoginPage() {
                   </div>
               )}
 
-              <button type="submit" disabled={vm.loading}>
+              <button
+                  type="submit"
+                  disabled={vm.loading}
+                  onClick={() => navigate('/hotelListing')}
+              >
                   Login
               </button>
           </form>

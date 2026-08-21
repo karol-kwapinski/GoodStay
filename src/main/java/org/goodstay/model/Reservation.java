@@ -45,7 +45,6 @@ public class Reservation {
     @NotNull
     private BigDecimal totalPrice;
 
-    @NotNull
     @CreationTimestamp
     private LocalDateTime createdAt;
 

@@ -1,0 +1,344 @@
+package org.goodstay.integrationTests;
+
+import org.goodstay.configuration.ApplicationConfiguration;
+import org.goodstay.dto.ReservationRequestDto;
+import org.goodstay.dto.RoomTypeSelectionDto;
+import org.goodstay.exception.*;
+import org.goodstay.model.*;
+import org.goodstay.repository.*;
+import org.goodstay.service.ReservationService;
+import org.goodstay.service.UserService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(SpringExtension.class)
+@TestPropertySource("classpath:application-test.properties")
+@ContextConfiguration(classes = {
+        ApplicationConfiguration.class
+})
+@Transactional
+public class ReservationIntegrationTest {
+
+    @Autowired
+    private ReservationRepository reservationRepository;
+
+    @Autowired
+    private ReservationService reservationService;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private HotelRepository hotelRepository;
+
+    @Autowired
+    private RoomTypeRepository roomTypeRepository;
+    @Autowired
+    private UserService userService;
+
+    static Stream<Arguments> getInvalidRequests() {
+        return Stream.of(
+                Arguments.of(
+                        "Check out date is before check in date",
+                        new ReservationRequestDto(
+                                LocalDate.of(2026, 8, 18),
+                                LocalDate.of(2026, 8, 16),
+                                "Jan",
+                                "Kowalski",
+                                "jan.kowalski@gmail.com",
+                                "333444555",
+                                "Poland",
+                                1L,
+                                List.of(new RoomTypeSelectionDto(
+                                        1L,
+                                        2
+                                ))
+                        )
+                ),
+                Arguments.of(
+                        "Check out date is the same as check in date",
+                        new ReservationRequestDto(
+                                LocalDate.of(2026, 8, 18),
+                                LocalDate.of(2026, 8, 18),
+                                "Jan",
+                                "Kowalski",
+                                "jan.kowalski@gmail.com",
+                                "333444555",
+                                "Poland",
+                                1L,
+                                List.of(new RoomTypeSelectionDto(
+                                        1L,
+                                        2
+                                ))
+                        )
+                )
+        );
+    }
+
+    User createUser(String email, UserRole role) {
+        User user = new User();
+        user.setRole(role);
+        user.setPassword("password");
+        user.setEmail(email);
+
+        return userRepository.save(user);
+    }
+
+    Hotel createHotel(User user) {
+
+        Hotel hotel = new Hotel();
+        hotel.setBrand("Hotel Warsaw");
+        hotel.setName("Hotel Warsaw");
+        hotel.setBuildingNumber("30B");
+        hotel.setCheckInFrom(LocalTime.of(14, 0, 0));
+        hotel.setCheckInUntil(LocalTime.of(21, 0,0));
+        hotel.setCheckOutUntil(LocalTime.of(12, 0,0));
+        hotel.setCityName("Warsaw");
+        hotel.setOwner(user);
+        hotel.setNumberOfRatings(0);
+        hotel.setStars(3);
+        hotel.setStreet("Mickiewicza");
+
+        return hotelRepository.save(hotel);
+    }
+
+    RoomType createRoomType() {
+        RoomType roomType = new RoomType();
+        roomType.setName("Bedroom");
+        roomType.setMaxGuests(3);
+
+        return roomTypeRepository.save(roomType);
+    }
+
+    Room createRoom(RoomType roomType, Hotel hotel, BigDecimal totalPrice) {
+        Room room = new Room();
+        room.setPricePerNight(totalPrice);
+        room.setRoomType(roomType);
+        room.setHotel(hotel);
+
+        return roomRepository.save(room);
+    }
+
+    Reservation createReservation(List<Room> rooms, User user) {
+        Reservation reservation = new Reservation();
+        reservation.setCheckInDate(LocalDate.of(2026, 8, 17));
+        reservation.setCheckOutDate(LocalDate.of(2026, 8, 20));
+        reservation.setGuestEmail("jan.kowalski@gmail.com");
+        reservation.setGuestFirstName("Jan");
+        reservation.setGuestLastName("Kowalski");
+        reservation.setGuestCountry("Poland");
+        reservation.setGuestPhoneNumber("555666777");
+        reservation.setStatus(ReservationStatus.PAID);
+        reservation.setTotalPrice(BigDecimal.valueOf(360.00));
+        reservation.setRooms(rooms);
+        reservation.setUser(user);
+
+        return reservationRepository.save(reservation);
+    }
+
+    @Test
+    void shouldAddReservation() {
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "jan.nowak@gmail.com",
+                null
+        );
+
+        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user = createUser("jan.nowak@gmail.com", UserRole.USER);
+        Hotel hotel = createHotel(owner);
+        RoomType roomType = createRoomType();
+        Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(100.00));
+        Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(130.00));
+
+        ReservationRequestDto request = new ReservationRequestDto(
+                LocalDate.of(2026, 8, 16),
+                LocalDate.of(2026, 8, 18),
+                "Jan",
+                "Kowalski",
+                "jan.kowalski@gmail.com",
+                "333444555",
+                "Poland",
+                1L,
+                List.of(new RoomTypeSelectionDto(
+                        1L,
+                        2
+                ))
+        );
+
+        reservationService.addReservation(request, authentication);
+
+        Reservation reservation = reservationRepository.getReservationById(1L).orElseThrow();
+
+        assertEquals(request.checkInDate(), reservation.getCheckInDate());
+        assertEquals(request.checkOutDate(), reservation.getCheckOutDate());
+        assertEquals(request.firstName(), reservation.getGuestFirstName());
+        assertEquals(request.lastName(), reservation.getGuestLastName());
+        assertEquals(request.email(), reservation.getGuestEmail());
+        assertEquals(request.phoneNumber(), reservation.getGuestPhoneNumber());
+        assertEquals(request.country(), reservation.getGuestCountry());
+        assertEquals(List.of(room1, room2), reservation.getRooms());
+        assertEquals(ReservationStatus.PAID, reservation.getStatus());
+        assertEquals(BigDecimal.valueOf(460.00), reservation.getTotalPrice());
+        assertEquals(user, reservation.getUser());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("getInvalidRequests")
+    void shouldThrowInvalidDateRangeException(String description, ReservationRequestDto request) {
+
+        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null
+        );
+
+        assertThrows(InvalidDateRangeException.class,
+                () -> reservationService.addReservation(request, authentication));
+    }
+
+    @Test
+    void shouldThrowUserNotFoundException() {
+        ReservationRequestDto request = new ReservationRequestDto(
+                LocalDate.of(2026, 8, 18),
+                LocalDate.of(2026, 8, 20),
+                "Jan",
+                "Kowalski",
+                "jan.kowalski@gmail.com",
+                "333444555",
+                "Poland",
+                1L,
+                List.of(new RoomTypeSelectionDto(
+                        1L,
+                        2
+                ))
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                null,
+                null
+        );
+
+        assertThrows(UserNotFoundException.class,
+                () -> reservationService.addReservation(request, authentication));
+    }
+
+    @Test
+    void shouldThrowInvalidRoomTypeSelectionException() {
+        ReservationRequestDto request = new ReservationRequestDto(
+                LocalDate.of(2026, 8, 18),
+                LocalDate.of(2026, 8, 21),
+                "Jan",
+                "Kowalski",
+                "jan.kowalski@gmail.com",
+                "333444555",
+                "Poland",
+                1L,
+                List.of(new RoomTypeSelectionDto(
+                        1L,
+                        2
+                        ),
+                        new RoomTypeSelectionDto(
+                                1L,
+                                2
+                        ))
+        );
+
+        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null
+        );
+
+        assertThrows(InvalidRoomTypeSelectionException.class,
+                () -> reservationService.addReservation(request, authentication));
+    }
+
+    @Test
+    void shouldThrowRoomNotAvailableException() {
+        ReservationRequestDto request = new ReservationRequestDto(
+                LocalDate.of(2026, 8, 18),
+                LocalDate.of(2026, 8, 21),
+                "Jan",
+                "Kowalski",
+                "jan.kowalski@gmail.com",
+                "333444555",
+                "Poland",
+                1L,
+                List.of(new RoomTypeSelectionDto(
+                                1L,
+                                2
+                ))
+        );
+
+        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user1 = createUser("agata.nowak@interia.pl", UserRole.USER);
+        RoomType roomType = createRoomType();
+        Hotel hotel = createHotel(owner);
+        Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
+        Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(180.00));
+        Reservation reservation = createReservation(List.of(room1, room2), user1);
+
+        User user2 = createUser("daniel.kowal@gmail.com", UserRole.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user2.getEmail(),
+                null
+        );
+
+        assertThrows(RoomNotAvailableException.class,
+                () -> reservationService.addReservation(request, authentication));
+    }
+
+    @Test
+    void shouldThrowInvalidRoomQuantityException() {
+        ReservationRequestDto request = new ReservationRequestDto(
+                LocalDate.of(2026, 8, 18),
+                LocalDate.of(2026, 8, 21),
+                "Jan",
+                "Kowalski",
+                "jan.kowalski@gmail.com",
+                "333444555",
+                "Poland",
+                1L,
+                List.of(new RoomTypeSelectionDto(
+                        1L,
+                        -3
+                ))
+        );
+
+        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null
+        );
+
+        assertThrows(InvalidRoomQuantityException.class,
+                () -> reservationService.addReservation(request, authentication));
+    }
+}

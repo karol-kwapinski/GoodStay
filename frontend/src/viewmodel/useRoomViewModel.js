@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {getAllRoomsByDatesAndHotelId} from "../model/roomAPI.js";
-import {useParams, useSearchParams} from "react-router-dom";
+import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useAuth} from "../config/authContext.jsx";
 
 export function useRoomViewModel() {
 
@@ -12,8 +13,30 @@ export function useRoomViewModel() {
 
     const checkInDate = searchParams.get("checkInDate");
     const checkOutDate = searchParams.get("checkOutDate");
-
     const [rooms, setRooms] = useState([])
+    const [selectedRoomTypes, setSelectedRoomTypes] = useState({});
+
+    const {user} = useAuth();
+
+    const handleRoomTypeChange = (roomTypeId, quantity) => {
+        setSelectedRoomTypes(prev => ({
+            ...prev,
+            [roomTypeId]: quantity
+        }));
+    }
+
+    const params = new URLSearchParams({
+        checkInDate,
+        checkOutDate,
+        roomTypes: JSON.stringify(selectedRoomTypes)
+    });
+
+    const navigate = useNavigate();
+
+    const isAnyRoomSelected = Object.values(selectedRoomTypes)
+        .some(quantity => quantity > 0);
+
+    const isLoggedIn = () => !!user;
 
     useEffect(() => {
         const loadRooms = async () => {
@@ -51,10 +74,16 @@ export function useRoomViewModel() {
         loadRooms();
     }, []);
 
-
     return {
         error,
         loading,
-        rooms
+        rooms,
+        hotelId,
+        params,
+        selectedRoomTypes,
+        isAnyRoomSelected,
+        navigate,
+        handleRoomTypeChange,
+        isLoggedIn
     }
 }

@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers("/api/users/me").authenticated()
+                                .requestMatchers("/api/reservations/addReservation").authenticated()
                                 .anyRequest().permitAll()
                 )
                 .csrf(csrf -> csrf.disable())

@@ -25,7 +25,9 @@ public class RoomServiceImpl implements RoomService {
             Long hotelId,
             RoomListRequestDto request) {
 
-        if (request.checkOutDate().isBefore(request.checkInDate())) {
+        if (request.checkOutDate().isBefore(request.checkInDate())
+                || request.checkOutDate().isEqual(request.checkInDate())) {
+
             throw new InvalidDateRangeException();
         }
 
