@@ -1,8 +1,7 @@
 package org.goodstay.integrationTests;
 
 import org.goodstay.configuration.ApplicationConfiguration;
-import org.goodstay.dto.ReservationRequestDto;
-import org.goodstay.dto.RoomTypeSelectionDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.model.*;
 import org.goodstay.repository.*;
@@ -55,8 +54,6 @@ public class ReservationIntegrationTest {
 
     @Autowired
     private RoomTypeRepository roomTypeRepository;
-    @Autowired
-    private UserService userService;
 
     static Stream<Arguments> getInvalidRequests() {
         return Stream.of(
@@ -124,10 +121,10 @@ public class ReservationIntegrationTest {
         return hotelRepository.save(hotel);
     }
 
-    RoomType createRoomType() {
+    RoomType createRoomType(String name, Integer maxGuests) {
         RoomType roomType = new RoomType();
-        roomType.setName("Bedroom");
-        roomType.setMaxGuests(3);
+        roomType.setName(name);
+        roomType.setMaxGuests(maxGuests);
 
         return roomTypeRepository.save(roomType);
     }
@@ -141,10 +138,14 @@ public class ReservationIntegrationTest {
         return roomRepository.save(room);
     }
 
-    Reservation createReservation(List<Room> rooms, User user) {
+    Reservation createReservation(
+            List<Room> rooms,
+            User user,
+            LocalDate checkInDate,
+            LocalDate checkOutDate) {
         Reservation reservation = new Reservation();
-        reservation.setCheckInDate(LocalDate.of(2026, 8, 17));
-        reservation.setCheckOutDate(LocalDate.of(2026, 8, 20));
+        reservation.setCheckInDate(checkInDate);
+        reservation.setCheckOutDate(checkOutDate);
         reservation.setGuestEmail("jan.kowalski@gmail.com");
         reservation.setGuestFirstName("Jan");
         reservation.setGuestLastName("Kowalski");
@@ -169,7 +170,7 @@ public class ReservationIntegrationTest {
         User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
         User user = createUser("jan.nowak@gmail.com", UserRole.USER);
         Hotel hotel = createHotel(owner);
-        RoomType roomType = createRoomType();
+        RoomType roomType = createRoomType("Bedroom", 3);
         Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(100.00));
         Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(130.00));
 
@@ -181,9 +182,9 @@ public class ReservationIntegrationTest {
                 "jan.kowalski@gmail.com",
                 "333444555",
                 "Poland",
-                1L,
+                hotel.getId(),
                 List.of(new RoomTypeSelectionDto(
-                        1L,
+                        roomType.getId(),
                         2
                 ))
         );
@@ -297,11 +298,15 @@ public class ReservationIntegrationTest {
 
         User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
         User user1 = createUser("agata.nowak@interia.pl", UserRole.USER);
-        RoomType roomType = createRoomType();
+        RoomType roomType = createRoomType("Bedroom", 3);
         Hotel hotel = createHotel(owner);
         Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
         Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(180.00));
-        Reservation reservation = createReservation(List.of(room1, room2), user1);
+        Reservation reservation = createReservation(
+                List.of(room1, room2),
+                user1,
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 8, 20));
 
         User user2 = createUser("daniel.kowal@gmail.com", UserRole.USER);
 
@@ -340,5 +345,125 @@ public class ReservationIntegrationTest {
 
         assertThrows(InvalidRoomQuantityException.class,
                 () -> reservationService.addReservation(request, authentication));
+    }
+
+    @Test
+    void shouldReturnReservations() {
+        User owner = createUser("Agata.kowal@interia.pl", UserRole.HOTEL_OWNER);
+        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null
+        );
+
+        Hotel hotel = createHotel(owner);
+        RoomType roomType = createRoomType("Bedroom", 3);
+        Room room = createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
+
+        Reservation reservation1 = createReservation(
+                List.of(room),
+                user,
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 8, 17));
+
+        Reservation reservation2 = createReservation(
+                List.of(room),
+                user,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 20));
+
+        ReservationInfoDto reservation1Info = new ReservationInfoDto(
+                reservation1.getId(),
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 8, 17),
+                hotel.getCityName(),
+                hotel.getName()
+        );
+
+        ReservationInfoDto reservation2Info = new ReservationInfoDto(
+                reservation2.getId(),
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 20),
+                hotel.getCityName(),
+                hotel.getName()
+        );
+
+        List<ReservationInfoDto> reservations =
+                reservationService.getReservationInfo(authentication);
+
+        assertEquals(2, reservations.size());
+        assertEquals(List.of(reservation1Info, reservation2Info), reservations);
+    }
+
+    @Test
+    void shouldThrowUserNotFoundExceptionWhenFetchingReservations() {
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                null,
+                null
+        );
+
+        assertThrows(UserNotFoundException.class,
+                () -> reservationService.getReservationInfo(authentication));
+    }
+
+    @Test
+    void shouldReturnReservationDetails() {
+
+        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user = createUser("jan.nowak@gmail.com", UserRole.USER);
+
+        Hotel hotel = createHotel(owner);
+
+        RoomType roomType1 = createRoomType("Bedroom", 3);
+        RoomType roomType2 = createRoomType("Apartment", 4);
+
+        Room room1 = createRoom(roomType1, hotel, BigDecimal.valueOf(120.00));
+        Room room2 = createRoom(roomType1, hotel, BigDecimal.valueOf(150.00));
+        Room room3 = createRoom(roomType2, hotel, BigDecimal.valueOf(200.00));
+
+        Reservation reservation = createReservation(
+                List.of(room1, room2, room3),
+                user,
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 8, 27)
+        );
+
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto1 = new RoomTypeAndMaxGuestsDto(
+                roomType1.getName(),
+                2,
+                roomType1.getMaxGuests()
+        );
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto2 = new RoomTypeAndMaxGuestsDto(
+                roomType2.getName(),
+                1,
+                roomType2.getMaxGuests()
+        );
+
+        ReservationDetailsDto reservationDetailsDto = new ReservationDetailsDto(
+                hotel.getCheckInFrom(),
+                hotel.getCheckInUntil(),
+                hotel.getCheckOutUntil(),
+                reservation.getGuestFirstName(),
+                reservation.getGuestLastName(),
+                reservation.getGuestEmail(),
+                reservation.getGuestPhoneNumber(),
+                reservation.getGuestCountry(),
+                reservation.getTotalPrice(),
+                reservation.getCreatedAt(),
+                reservation.getStatus().name(),
+                List.of(roomTypeAndMaxGuestsDto1, roomTypeAndMaxGuestsDto2)
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null
+        );
+
+        ReservationDetailsDto result = reservationService
+                .getReservationDetails(authentication, reservation.getId());
+
+        assertEquals(reservationDetailsDto, result);
     }
 }

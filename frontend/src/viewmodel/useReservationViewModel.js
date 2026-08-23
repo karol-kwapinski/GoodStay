@@ -32,16 +32,17 @@ export function useReservationViewModel() {
     )
 
     useEffect(() => {
-        if (user) {
-            setForm({
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                phoneNumber: user.phoneNumber,
-                country: user.country
-            })
-        }
+        if (!user) return;
+        setForm({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            country: user.country
+        })
+    }, [user]);
 
+    useEffect(() => {
         const getTotal = async () => {
             try {
                 const dataToSend = {

@@ -2,6 +2,8 @@ package org.goodstay.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.goodstay.dto.ReservationDetailsDto;
+import org.goodstay.dto.ReservationInfoDto;
 import org.goodstay.dto.ReservationRequestDto;
 import org.goodstay.dto.TotalPriceDto;
 import org.goodstay.service.ReservationService;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,5 +36,17 @@ public class ReservationController {
     public ResponseEntity<BigDecimal> getTotalPrice(
             @PathVariable("hotelId") Long hotelId, @Valid @RequestBody TotalPriceDto dto) {
         return ResponseEntity.ok(reservationService.getTotalPrice(hotelId, dto));
+    }
+
+    @GetMapping("/getReservations")
+    public ResponseEntity<List<ReservationInfoDto>> getReservations(Authentication authentication){
+        return ResponseEntity.ok(reservationService.getReservationInfo(authentication));
+    }
+
+    @GetMapping("/getReservationDetails/{reservationId}")
+    public ResponseEntity<ReservationDetailsDto> getReservationDetails(
+            Authentication authentication,
+            @PathVariable("reservationId") Long reservationId) {
+        return ResponseEntity.ok(reservationService.getReservationDetails(authentication, reservationId));
     }
 }

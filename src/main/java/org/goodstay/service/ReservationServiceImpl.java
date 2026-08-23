@@ -1,13 +1,12 @@
 package org.goodstay.service;
 
 import lombok.RequiredArgsConstructor;
-import org.goodstay.dto.ReservationRequestDto;
-import org.goodstay.dto.RoomTypeSelectionDto;
-import org.goodstay.dto.TotalPriceDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.mapper.ReservationMapper;
 import org.goodstay.model.Reservation;
 import org.goodstay.model.Room;
+import org.goodstay.model.RoomType;
 import org.goodstay.model.User;
 import org.goodstay.repository.ReservationRepository;
 import org.goodstay.repository.RoomRepository;
@@ -19,9 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,6 +72,49 @@ public class ReservationServiceImpl implements ReservationService {
                 dto.checkOutDate(),
                 allRooms
         );
+    }
+
+    public List<ReservationInfoDto> getReservationInfo(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
+                UserNotFoundException::new
+        );
+
+        List<Reservation> reservations = reservationRepository.findByIdWithRoomsAndHotel(
+                user.getId());
+
+        return reservationMapper.toReservationInfoDto(reservations);
+    }
+
+    public ReservationDetailsDto getReservationDetails(
+            Authentication authentication,
+            Long reservationId) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(
+                UserNotFoundException::new
+        );
+
+        Reservation reservation = reservationRepository
+                .findByUserIdAndReservationIdWithRoomsAndHotelAndRoomType(
+                        user.getId(),
+                        reservationId).orElseThrow();
+
+        Map<RoomType, Long> roomTypeCounts = reservation.getRooms().stream()
+                .map(Room::getRoomType)
+                .collect(Collectors.groupingBy(
+                        Function.identity(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
+
+        List<RoomTypeAndMaxGuestsDto> roomsDetailsList = roomTypeCounts.entrySet().stream()
+                .map(roomTypeLongEntry -> new RoomTypeAndMaxGuestsDto(
+                            roomTypeLongEntry.getKey().getName(),
+                            roomTypeLongEntry.getValue().intValue(),
+                            roomTypeLongEntry.getKey().getMaxGuests()
+                            ))
+                .toList();
+
+        return reservationMapper.toReservationDetailsDto(reservation, roomsDetailsList);
+
     }
 
     private List<Room> getAvailableRooms(

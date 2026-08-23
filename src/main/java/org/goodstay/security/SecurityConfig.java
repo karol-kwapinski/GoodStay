@@ -28,6 +28,8 @@ public class SecurityConfig {
                         auth
                                 .requestMatchers("/api/users/me").authenticated()
                                 .requestMatchers("/api/reservations/addReservation").authenticated()
+                                .requestMatchers("/api/reservations/getReservations").authenticated()
+                                .requestMatchers("/api/reservations/getReservationDetails/{reservationId}").authenticated()
                                 .anyRequest().permitAll()
                 )
                 .csrf(csrf -> csrf.disable())
