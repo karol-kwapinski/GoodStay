@@ -1,14 +1,9 @@
 package org.goodstay.service;
 
-import org.goodstay.dto.ReservationRequestDto;
-import org.goodstay.dto.RoomTypeSelectionDto;
-import org.goodstay.dto.TotalPriceDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.mapper.ReservationMapper;
-import org.goodstay.model.Reservation;
-import org.goodstay.model.ReservationStatus;
-import org.goodstay.model.Room;
-import org.goodstay.model.User;
+import org.goodstay.model.*;
 import org.goodstay.repository.ReservationRepository;
 import org.goodstay.repository.RoomRepository;
 import org.goodstay.repository.UserRepository;
@@ -25,12 +20,13 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -406,7 +402,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    void shouldThrowUserNotFoundException() {
+    void shouldThrowUserNotFoundExceptionWhenAddingReservation() {
 
         ReservationRequestDto request = new ReservationRequestDto(
                 LocalDate.of(2026, 8, 16),
@@ -469,6 +465,175 @@ public class ReservationServiceTest {
         verifyNoInteractions(reservationMapper);
         verifyNoInteractions(reservationRepository);
 
+    }
+
+    @Test
+    void shouldReturnReservations() {
+
+        User user = new User();
+        user.setId(1L);
+
+        Reservation reservation1 = new Reservation();
+        Reservation reservation2 = new Reservation();
+
+        ReservationInfoDto reservation1Info = new ReservationInfoDto(
+                1L,
+                LocalDate.of(2026, 7, 15),
+                LocalDate.of(2026, 7, 20),
+                "Cracow",
+                "Great Hotel"
+        );
+
+        ReservationInfoDto reservation2Info = new ReservationInfoDto(
+                2L,
+                LocalDate.of(2026, 10, 13),
+                LocalDate.of(2026, 10, 27),
+                "Warsaw",
+                "Warsaw Hotel"
+        );
+
+        when(authentication.getName())
+                .thenReturn("jan.nowak@gmail.com");
+
+        when(userRepository.findByEmail("jan.nowak@gmail.com"))
+                .thenReturn(Optional.of(user));
+
+        when(reservationRepository.findByIdWithRoomsAndHotel(user.getId()))
+                .thenReturn(List.of(reservation1, reservation2));
+
+        when(reservationMapper.toReservationInfoDto(List.of(reservation1, reservation2)))
+                .thenReturn(List.of(
+                        reservation1Info,
+                        reservation2Info
+                )
+        );
+
+        List<ReservationInfoDto> reservationsInfo = reservationService
+                .getReservationInfo(authentication);
+
+        assertEquals(2, reservationsInfo.size());
+        assertEquals(List.of(reservation1Info, reservation2Info), reservationsInfo);
+
+        verify(authentication).getName();
+        verify(userRepository).findByEmail("jan.nowak@gmail.com");
+        verify(reservationRepository).findByIdWithRoomsAndHotel(user.getId());
+        verify(reservationMapper).toReservationInfoDto(List.of(reservation1, reservation2));
+    }
+
+    @Test
+    void shouldThrowUserNotFoundExceptionWhenFetchingReservations() {
+        assertThrows(UserNotFoundException.class,
+                () -> reservationService.getReservationInfo(authentication));
+
+        verify(authentication).getName();
+        verify(userRepository).findByEmail(null);
+        verifyNoInteractions(reservationRepository);
+        verifyNoInteractions(reservationMapper);
+    }
+
+    @Test
+    void shouldReturnReservationDetails() {
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("adam.kowalski@gmail.com");
+
+        RoomType roomType1 = new RoomType();
+        RoomType roomType2 = new RoomType();
+
+        roomType1.setId(1L);
+        roomType1.setName("Bedroom");
+        roomType1.setMaxGuests(2);
+
+        roomType2.setId(2L);
+        roomType2.setName("Apartment");
+        roomType2.setMaxGuests(4);
+
+        Room room1 = new Room();
+        Room room2 = new Room();
+        Room room3 = new Room();
+
+        room1.setRoomType(roomType1);
+        room2.setRoomType(roomType1);
+        room3.setRoomType(roomType2);
+
+        Reservation reservation = new Reservation();
+        reservation.setRooms(List.of(room1, room2, room3));
+
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto1 = new RoomTypeAndMaxGuestsDto(
+                roomType1.getName(),
+                List.of(room1, room2).size(),
+                roomType1.getMaxGuests()
+        );
+
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto2 = new RoomTypeAndMaxGuestsDto(
+                roomType2.getName(),
+                List.of(room3).size(),
+                roomType2.getMaxGuests()
+        );
+
+        ReservationDetailsDto reservationDetailsDto = new ReservationDetailsDto(
+                LocalTime.of(14, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(11, 0, 0),
+                "Adam",
+                "Kowalski",
+                "adam.kowalski@gmail.com",
+                "123456789",
+                "Poland",
+                BigDecimal.valueOf(400.00),
+                LocalDateTime.of(2026, 9, 10, 13, 34, 52),
+                ReservationStatus.PAID.name(),
+                List.of(roomTypeAndMaxGuestsDto1, roomTypeAndMaxGuestsDto2)
+        );
+
+
+        when(authentication.getName())
+                .thenReturn(user.getEmail());
+        when(userRepository.findByEmail(user.getEmail()))
+                .thenReturn(Optional.of(user));
+
+        when(reservationRepository.findByUserIdAndReservationIdWithRoomsAndHotelAndRoomType(
+                user.getId(),
+                1L
+        ))
+                .thenReturn(Optional.of(reservation));
+
+        when(reservationMapper.toReservationDetailsDto(
+                reservation,
+                List.of(roomTypeAndMaxGuestsDto1, roomTypeAndMaxGuestsDto2)
+        ))
+                .thenReturn(reservationDetailsDto);
+
+        ReservationDetailsDto response = reservationService.getReservationDetails(
+                authentication,
+                1L
+        );
+
+        assertEquals(reservationDetailsDto, response);
+
+        verify(authentication).getName();
+        verify(userRepository).findByEmail(user.getEmail());
+        verify(reservationRepository).findByUserIdAndReservationIdWithRoomsAndHotelAndRoomType(
+                user.getId(),
+                1L
+        );
+        verify(reservationMapper).toReservationDetailsDto(
+                reservation,
+                List.of(roomTypeAndMaxGuestsDto1, roomTypeAndMaxGuestsDto2)
+        );
+    }
+
+    @Test
+    void shouldThrowUserNotFoundExceptionWhenFetchingReservationDetails() {
+
+        assertThrows(UserNotFoundException.class,
+                () -> reservationService.getReservationDetails(authentication, 1L));
+
+        verify(authentication).getName();
+        verify(userRepository).findByEmail(null);
+        verifyNoInteractions(reservationRepository);
+        verifyNoInteractions(reservationMapper);
     }
 
 }

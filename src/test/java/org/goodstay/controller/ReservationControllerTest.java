@@ -2,11 +2,10 @@ package org.goodstay.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.goodstay.dto.ReservationRequestDto;
-import org.goodstay.dto.RoomTypeSelectionDto;
-import org.goodstay.dto.TotalPriceDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.GlobalExceptionHandler;
 import org.goodstay.exception.InvalidDateRangeException;
+import org.goodstay.model.ReservationStatus;
 import org.goodstay.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,10 +25,13 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -207,4 +209,117 @@ public class ReservationControllerTest {
 
         verify(reservationService).getTotalPrice(1L, request);
     }
+
+    @Test
+    void shouldReturnReservations() throws Exception {
+
+        ReservationInfoDto reservation1 = new ReservationInfoDto(
+                1L,
+                LocalDate.now().minusDays(10),
+                LocalDate.now().minusDays(5),
+                "Cracow",
+                "Great Hotel"
+        );
+
+        ReservationInfoDto reservation2 = new ReservationInfoDto(
+                2L,
+                LocalDate.now().plusDays(3),
+                LocalDate.now().plusDays(7),
+                "Cracow",
+                "Great Hotel"
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "jan.kowalski@gmail.com",
+                null
+        );
+
+        when(reservationService.getReservationInfo(authentication))
+                .thenReturn(List.of(reservation1, reservation2));
+
+        mockMvc.perform(get("/api/reservations/getReservations")
+                .principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].checkInDate[0]")
+                        .value(reservation1.checkInDate().getYear()))
+                .andExpect(jsonPath("$[0].checkInDate[1]")
+                        .value(reservation1.checkInDate().getMonthValue()))
+                .andExpect(jsonPath("$[0].checkInDate[2]")
+                        .value(reservation1.checkInDate().getDayOfMonth()))
+                .andExpect(jsonPath("$[0].checkOutDate[0]")
+                        .value(reservation1.checkOutDate().getYear()))
+                .andExpect(jsonPath("$[0].checkOutDate[1]")
+                        .value(reservation1.checkOutDate().getMonthValue()))
+                .andExpect(jsonPath("$[0].checkOutDate[2]")
+                        .value(reservation1.checkOutDate().getDayOfMonth()))
+                .andExpect(jsonPath("$[0].cityName")
+                        .value(reservation1.cityName()))
+                .andExpect(jsonPath("$[0].hotelName")
+                        .value(reservation1.hotelName()))
+                .andExpect(jsonPath("$[1].checkInDate[0]")
+                        .value(reservation2.checkInDate().getYear()))
+                .andExpect(jsonPath("$[1].checkInDate[1]")
+                        .value(reservation2.checkInDate().getMonthValue()))
+                .andExpect(jsonPath("$[1].checkInDate[2]")
+                        .value(reservation2.checkInDate().getDayOfMonth()))
+                .andExpect(jsonPath("$[1].checkOutDate[0]")
+                        .value(reservation2.checkOutDate().getYear()))
+                .andExpect(jsonPath("$[1].checkOutDate[1]")
+                        .value(reservation2.checkOutDate().getMonthValue()))
+                .andExpect(jsonPath("$[1].checkOutDate[2]")
+                        .value(reservation2.checkOutDate().getDayOfMonth()))
+                .andExpect(jsonPath("$[1].cityName")
+                        .value(reservation2.cityName()))
+                .andExpect(jsonPath("$[1].hotelName")
+                        .value(reservation2.hotelName()));
+
+        verify(reservationService).getReservationInfo(authentication);
+    }
+
+    @Test
+    void shouldReturnReservationDetails() throws Exception {
+
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto1 = new RoomTypeAndMaxGuestsDto(
+                "Bedroom",
+                2,
+                2
+        );
+
+        RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto2 = new RoomTypeAndMaxGuestsDto(
+                "Apartment",
+                1,
+                4
+        );
+
+        ReservationDetailsDto dto = new ReservationDetailsDto(
+                LocalTime.of(14, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(11, 0, 0),
+                "Adam",
+                "Kowalski",
+                "adam.kowalski@gmail.com",
+                "123456789",
+                "Poland",
+                BigDecimal.valueOf(400.00),
+                LocalDateTime.of(2026, 9, 10, 13, 34, 52),
+                ReservationStatus.PAID.name(),
+                List.of(roomTypeAndMaxGuestsDto1, roomTypeAndMaxGuestsDto2)
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "jan.kowalski@gmail.com",
+                null
+        );
+
+        when(reservationService.getReservationDetails(authentication, 1L))
+                .thenReturn(dto);
+
+        mockMvc.perform(get("/api/reservations/getReservationDetails/{reservationId}"
+                        , 1L)
+                .principal(authentication))
+                .andExpect(status().isOk());
+    }
+
 }

@@ -1,6 +1,6 @@
 import {useAuth} from "../../config/authContext.jsx";
 import {useLoginViewModel} from "../../viewmodel/useLoginViewModel.js";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 export default function Header() {
 
@@ -9,12 +9,13 @@ export default function Header() {
     const navigate = useNavigate();
 
     return (
-        <div>
+        <div style={{ display: "flex", gap: "20px"}}>
             {user ? (
                 <div>
                     <button onClick={vm.handleLogout}>
                         LOG OUT
                     </button>
+                    <Link to={'/userPanel'}> User Panel </Link><br />
                 </div>
             ) : (
                 <div>
@@ -23,6 +24,7 @@ export default function Header() {
                     </button>
                 </div>
             )}
+            <Link to={'/hotelListing'}> GoodStay </Link>
         </div>
     )
 }
