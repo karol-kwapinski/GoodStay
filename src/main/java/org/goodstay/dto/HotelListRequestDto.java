@@ -5,6 +5,7 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record HotelListRequestDto(
 
@@ -15,5 +16,11 @@ public record HotelListRequestDto(
         LocalDate checkInDate,
 
         @Future
-        LocalDate checkOutDate
-) {}
+        LocalDate checkOutDate,
+
+        List<String> facilities
+) {
+        public HotelListRequestDto {
+                facilities = facilities == null ? List.of() : facilities;
+        }
+}

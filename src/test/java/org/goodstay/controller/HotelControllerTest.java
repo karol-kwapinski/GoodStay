@@ -46,7 +46,8 @@ public class HotelControllerTest {
                         new HotelListRequestDto(
                                 "Warsaw",
                                 LocalDate.now().minusDays(5),
-                                LocalDate.now().plusDays(1)
+                                LocalDate.now().plusDays(1),
+                                List.of("Parking")
                         )
                     ),
                     Arguments.of(
@@ -54,7 +55,8 @@ public class HotelControllerTest {
                         new HotelListRequestDto(
                                 "Cracow",
                                 LocalDate.now(),
-                                LocalDate.now().minusDays(5)
+                                LocalDate.now().minusDays(5),
+                                List.of("Parking")
                         )
                     ),
                     Arguments.of(
@@ -62,7 +64,8 @@ public class HotelControllerTest {
                         new HotelListRequestDto(
                                 "",
                                 LocalDate.now().plusDays(3),
-                                LocalDate.now().plusDays(8)
+                                LocalDate.now().plusDays(8),
+                                List.of("Parking")
                         )
                     )
             );
@@ -87,7 +90,8 @@ public class HotelControllerTest {
         HotelListRequestDto request = new HotelListRequestDto(
                 "Warsaw",
                 LocalDate.now().plusDays(5),
-                LocalDate.now().plusDays(15)
+                LocalDate.now().plusDays(15),
+                List.of("Parking")
         );
 
         HotelListResponseDto response = new HotelListResponseDto(
@@ -144,7 +148,8 @@ public class HotelControllerTest {
             HotelListRequestDto request = new HotelListRequestDto(
                         "Cracow",
                         LocalDate.now().plusDays(5),
-                        LocalDate.now().plusDays(3)
+                        LocalDate.now().plusDays(3),
+                        List.of("Parking")
                 );
 
             when(hotelService.getAvailableHotels(request))

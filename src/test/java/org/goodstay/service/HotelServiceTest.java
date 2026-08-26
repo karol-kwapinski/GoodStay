@@ -41,7 +41,8 @@ public class HotelServiceTest {
         HotelListRequestDto request = new HotelListRequestDto(
                 "Warsaw",
                 LocalDate.of(2026, 8, 15),
-                LocalDate.of(2026, 8, 30)
+                LocalDate.of(2026, 8, 30),
+                List.of("Parking")
         );
 
         HotelListResponseDto response = new HotelListResponseDto(
@@ -83,7 +84,8 @@ public class HotelServiceTest {
         HotelListRequestDto request = new HotelListRequestDto(
                 "Cracow",
                 LocalDate.of(2026, 8, 30),
-                LocalDate.of(2026, 8, 15)
+                LocalDate.of(2026, 8, 15),
+                List.of("Parking")
         );
 
         assertThrows(InvalidDateRangeException.class,
