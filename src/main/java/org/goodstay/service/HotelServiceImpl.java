@@ -25,12 +25,22 @@ public class HotelServiceImpl implements HotelService{
             throw new InvalidDateRangeException();
         }
 
-        List<Hotel> hotelList = hotelRepository.getAvailableHotels(
+        if (request.facilities() == null || request.facilities().isEmpty()) {
+            List<Hotel> hotelList = hotelRepository.getAvailableHotels(
+                    request.cityName(),
+                    request.checkInDate(),
+                    request.checkOutDate()
+            );
+            return hotelMapper.toDto(hotelList);
+        }
+
+        List<Hotel> hotelList = hotelRepository.getAvailableHotelsWithFacilities(
                 request.cityName(),
                 request.checkInDate(),
-                request.checkOutDate()
+                request.checkOutDate(),
+                request.facilities(),
+                request.facilities().size()
         );
-
         return hotelMapper.toDto(hotelList);
     }
 }

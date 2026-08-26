@@ -1,5 +1,6 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {getAllHotelsByReservationDateAndCityName} from "../model/hotelAPI.js";
+import {getFacilities} from "../model/FacilityAPI.js";
 
 export function useHotelViewModel() {
 
@@ -10,13 +11,14 @@ export function useHotelViewModel() {
     });
 
     const [hotelList, setHotelList] = useState([]);
-
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
     const today = new Date();
     const minDate =
         `${today.getFullYear()}-${String(today.getMonth() + 1)
             .padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const [facilities, setFacilities] = useState([]);
+    const [selectedFacilities, setSelectedFacilities] = useState([]);
 
     const handleChange = (event) => {
         setForm({
@@ -39,13 +41,18 @@ export function useHotelViewModel() {
     const handleSubmit = async (event) => {
 
         event.preventDefault();
+        await searchHotels(selectedFacilities);
+    }
 
+    const searchHotels = async (facilities) => {
         try {
-            setLoading(true)
+            setLoading(true);
+
             const response = await getAllHotelsByReservationDateAndCityName(
                 form.cityName,
                 form.checkInDate,
-                form.checkOutDate
+                form.checkOutDate,
+                facilities
             );
             setHotelList(response);
             setError(null);
@@ -66,14 +73,57 @@ export function useHotelViewModel() {
         }
     }
 
+    useEffect(() => {
+        const fetchFacilities = async () => {
+            if (!hotelList?.length) {
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams();
+
+                hotelList.forEach(hotel => {
+                    params.append("hotelIds", hotel.id);
+                });
+
+                const data = await getFacilities(params);
+                setFacilities(data);
+
+            } catch (error) {
+                switch (error.code) {
+                    case "SERVER_UNAVAILABLE":
+                        setError("Server is unavailable");
+                        break;
+                    default:
+                        setError("Unknown Error has occurred");
+                }
+            }
+        };
+
+        fetchFacilities();
+    }, [hotelList]);
+
+    const handleFacilitiesChange = async (facility) => {
+        const newFacilities = selectedFacilities.includes(facility)
+            ? selectedFacilities.filter(f => f !== facility)
+            : [...selectedFacilities, facility];
+
+        setSelectedFacilities(newFacilities);
+
+        await searchHotels(newFacilities);
+    };
+
     return {
         handleChange,
         handleSubmit,
         getNextDay,
+        handleFacilitiesChange,
         hotelList,
         form,
         error,
         loading,
-        minDate
+        minDate,
+        facilities,
+        selectedFacilities,
     }
 }
