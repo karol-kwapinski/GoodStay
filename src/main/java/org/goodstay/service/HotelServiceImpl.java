@@ -2,7 +2,8 @@ package org.goodstay.service;
 
 import lombok.RequiredArgsConstructor;
 import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelListResponseDto;
+import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.exception.HotelDoesNotExistException;
 import org.goodstay.exception.InvalidDateRangeException;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
@@ -18,7 +19,7 @@ public class HotelServiceImpl implements HotelService{
     private final HotelRepository hotelRepository;
     private final HotelMapper hotelMapper;
 
-    public List<HotelListResponseDto> getAvailableHotels(HotelListRequestDto request) {
+    public List<HotelResponseDto> getAvailableHotels(HotelListRequestDto request) {
 
         if (request.checkOutDate().isBefore(request.checkInDate())
                 || request.checkOutDate().isEqual(request.checkInDate())) {
@@ -42,5 +43,14 @@ public class HotelServiceImpl implements HotelService{
                 request.facilities().size()
         );
         return hotelMapper.toDto(hotelList);
+    }
+
+    public HotelResponseDto getHotel(Long hotelId) {
+
+       Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(
+               HotelDoesNotExistException::new
+       );
+
+       return hotelMapper.toDto(hotel);
     }
 }

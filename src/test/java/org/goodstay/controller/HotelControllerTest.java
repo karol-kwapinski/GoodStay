@@ -1,7 +1,7 @@
 package org.goodstay.controller;
 
 import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelListResponseDto;
+import org.goodstay.dto.HotelResponseDto;
 import org.goodstay.exception.GlobalExceptionHandler;
 import org.goodstay.exception.InvalidDateRangeException;
 import org.goodstay.service.HotelService;
@@ -94,7 +94,7 @@ public class HotelControllerTest {
                 List.of()
         );
 
-        HotelListResponseDto response = new HotelListResponseDto(
+        HotelResponseDto response = new HotelResponseDto(
                 1L,
                 "WarsawHotel",
                 "Warsaw",
@@ -162,6 +162,12 @@ public class HotelControllerTest {
                     .andExpect(status().isBadRequest());
 
             verify(hotelService).getAvailableHotels(request);
+    }
+
+    @Test
+    void shouldReturnOkStatusWhenFetchingHotel() throws Exception {
+        mockMvc.perform(get("/api/hotels/getHotel/{hotelId}", 1L))
+                .andExpect(status().isOk());
     }
 
 }

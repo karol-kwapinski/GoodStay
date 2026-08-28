@@ -1,10 +1,10 @@
-import {useHotelViewModel} from "../viewmodel/useHotelViewModel.js";
+import {useHotelListingViewModel} from "../viewmodel/useHotelListingViewModel.js";
 import {Link} from "react-router-dom";
 import Header from "./components/Header.jsx";
 
 export default function HotelListingPage() {
 
-    const vm = useHotelViewModel();
+    const vm = useHotelListingViewModel();
 
     return (
         <>
@@ -104,7 +104,7 @@ export default function HotelListingPage() {
                         {vm.hotelList.map((hotel) => (
                             <Link
                                 key={hotel.id}
-                                to={`/rooms/${hotel.id}?checkInDate=${vm.form.checkInDate}&checkOutDate=${vm.form.checkOutDate}`}
+                                to={`/hotel/${hotel.id}?checkInDate=${vm.form.checkInDate}&checkOutDate=${vm.form.checkOutDate}`}
                                 style={{
                                     textDecoration: "none"
                                 }}

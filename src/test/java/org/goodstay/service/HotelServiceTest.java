@@ -1,7 +1,8 @@
 package org.goodstay.service;
 
 import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelListResponseDto;
+import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.exception.HotelDoesNotExistException;
 import org.goodstay.exception.InvalidDateRangeException;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,7 +47,7 @@ public class HotelServiceTest {
                 List.of()
         );
 
-        HotelListResponseDto response = new HotelListResponseDto(
+        HotelResponseDto response = new HotelResponseDto(
                 1L,
                 "WarsawHotel",
             "Warsaw",
@@ -64,7 +66,7 @@ public class HotelServiceTest {
         when(hotelMapper.toDto(listOfHotels))
                 .thenReturn(List.of(response));
 
-        List<HotelListResponseDto> hotelList = hotelService.getAvailableHotels(request);
+        List<HotelResponseDto> hotelList = hotelService.getAvailableHotels(request);
 
         assertEquals(List.of(response), hotelList);
         assertEquals(1, hotelList.size());
@@ -99,4 +101,42 @@ public class HotelServiceTest {
 
         verify(hotelMapper, never()).toDto(anyList());
     }
-}
+
+    @Test
+    void shouldReturnHotelWithGivenHotelId() {
+        Hotel hotel = new Hotel();
+        hotel.setId(1L);
+
+        HotelResponseDto expected = new HotelResponseDto(
+                1L,
+                "Great hotel",
+                "Warsaw",
+                "Mickiewicza",
+                "18B",
+                5,
+                0
+        );
+
+        when(hotelRepository.findById(1L))
+                .thenReturn(Optional.of(hotel));
+
+        when(hotelMapper.toDto(hotel))
+                .thenReturn(expected);
+
+        HotelResponseDto response = hotelService.getHotel(1L);
+
+        assertEquals(expected, response);
+
+        verify(hotelRepository).findById(1L);
+        verify(hotelMapper).toDto(hotel);
+    }
+
+    @Test
+    void shouldThrowHotelDoesNotExistExceptionWhenFetchingHotel() {
+        assertThrows(HotelDoesNotExistException.class,
+                () -> hotelService.getHotel(1L));
+
+        verify(hotelRepository).findById(1L);
+        verifyNoInteractions(hotelMapper);
+    }
+ }

@@ -1,11 +1,12 @@
 package org.goodstay.service;
 
 import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelListResponseDto;
+import org.goodstay.dto.HotelResponseDto;
 
 import java.util.List;
 
 public interface HotelService {
 
-    List<HotelListResponseDto> getAvailableHotels(HotelListRequestDto request);
+    List<HotelResponseDto> getAvailableHotels(HotelListRequestDto request);
+    HotelResponseDto getHotel(Long hotelId);
 }
