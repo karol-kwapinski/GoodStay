@@ -1,6 +1,6 @@
 # GoodStay
 
-A web-based hotel booking platform inspired by Booking.com.
+A web-based hotel booking platform.
 Users can search, browse, and reserve hotel rooms across multiple properties.
 
 ---
