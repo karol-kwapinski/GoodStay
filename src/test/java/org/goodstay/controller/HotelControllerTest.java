@@ -91,7 +91,7 @@ public class HotelControllerTest {
                 "Warsaw",
                 LocalDate.now().plusDays(5),
                 LocalDate.now().plusDays(15),
-                List.of("Parking")
+                List.of()
         );
 
         HotelListResponseDto response = new HotelListResponseDto(
@@ -149,7 +149,7 @@ public class HotelControllerTest {
                         "Cracow",
                         LocalDate.now().plusDays(5),
                         LocalDate.now().plusDays(3),
-                        List.of("Parking")
+                        List.of()
                 );
 
             when(hotelService.getAvailableHotels(request))

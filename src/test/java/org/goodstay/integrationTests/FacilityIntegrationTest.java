@@ -9,6 +9,7 @@ import org.goodstay.repository.FacilityRepository;
 import org.goodstay.repository.HotelRepository;
 import org.goodstay.repository.UserRepository;
 import org.goodstay.service.FacilityService;
+import org.goodstay.util.TestDataFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,65 +26,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        ApplicationConfiguration.class
+        ApplicationConfiguration.class,
+        TestDataFactory.class
 })
 @TestPropertySource("classpath:application-test.properties")
 @Transactional
 public class FacilityIntegrationTest {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private HotelRepository hotelRepository;
+    private TestDataFactory testDataFactory;
 
     @Autowired
     private FacilityService facilityService;
-
-    @Autowired
-    private FacilityRepository facilityRepository;
-
-    private User createUser(String email, String password, UserRole userRole) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setRole(userRole);
-        return userRepository.save(user);
-    }
-
-    private Facility createFacility(String name) {
-        Facility facility = new Facility();
-        facility.setName(name);
-        return facilityRepository.save(facility);
-    }
-
-    private Hotel createHotel(
-            String name,
-            Integer stars,
-            String brand,
-            String cityName,
-            String street,
-            String buildingNumber,
-            LocalTime checkInFrom,
-            LocalTime checkInUntil,
-            LocalTime checkOutUntil,
-            User owner,
-            List<Facility> facilities
-    ) {
-        Hotel hotel = new Hotel();
-        hotel.setName(name);
-        hotel.setStars(stars);
-        hotel.setBrand(brand);
-        hotel.setCityName(cityName);
-        hotel.setStreet(street);
-        hotel.setBuildingNumber(buildingNumber);
-        hotel.setCheckInFrom(checkInFrom);
-        hotel.setCheckInUntil(checkInUntil);
-        hotel.setCheckOutUntil(checkOutUntil);
-        hotel.setOwner(owner);
-        hotel.setFacilities(facilities);
-        return hotelRepository.save(hotel);
-    }
 
     @Test
     void shouldFetchFacilitiesBasedOnHotelIds() {
@@ -97,20 +51,19 @@ public class FacilityIntegrationTest {
                 "Swimming pool"
         );
 
-        User owner = createUser(
+        User owner = testDataFactory.createUser(
                 "jan.kowalski@gmail.com",
-                "password",
                         UserRole.HOTEL_OWNER);
 
-        Facility facility1 = createFacility("Parking");
-        Facility facility2 = createFacility("Swimming pool");
-        Facility facility3 = createFacility("Hot tub");
-        Facility facility4 = createFacility("Free Wifi");
-        Facility facility5 = createFacility("Restaurant");
-        Facility facility6 = createFacility("Fitness center");
-        createFacility("Happy hour");
+        Facility facility1 = testDataFactory.createFacility("Parking");
+        Facility facility2 = testDataFactory.createFacility("Swimming pool");
+        Facility facility3 = testDataFactory.createFacility("Hot tub");
+        Facility facility4 = testDataFactory.createFacility("Free Wifi");
+        Facility facility5 = testDataFactory.createFacility("Restaurant");
+        Facility facility6 = testDataFactory.createFacility("Fitness center");
+        testDataFactory.createFacility("Happy hour");
 
-        Hotel hotel1 = createHotel(
+        Hotel hotel1 = testDataFactory.createHotelWithFacilities(
                 "Warsaw hotel",
                 3,
                 "Good hotels",
@@ -124,7 +77,7 @@ public class FacilityIntegrationTest {
                 List.of(facility1, facility2, facility3)
         );
 
-        Hotel hotel2 = createHotel(
+        Hotel hotel2 = testDataFactory.createHotelWithFacilities(
                 "Cracow hotel",
                 4,
                 "Good hotels",
@@ -138,7 +91,7 @@ public class FacilityIntegrationTest {
                 List.of(facility1, facility5)
         );
 
-        Hotel hotel3 = createHotel(
+        Hotel hotel3 = testDataFactory.createHotelWithFacilities(
                 "Poznan hotel",
                 3,
                 "Good hotels",

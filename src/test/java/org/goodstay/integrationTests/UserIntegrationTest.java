@@ -55,10 +55,8 @@ class UserIntegrationTest {
 
         userService.register(request);
 
-
         User user = userRepository.findByEmail("adam@gmail.com")
                 .orElseThrow();
-
 
         assertEquals(request.email(), user.getEmail());
         assertEquals(request.firstName(), user.getFirstName());
@@ -132,9 +130,11 @@ class UserIntegrationTest {
 
         RegisterRequestDto registerRequest = createValidRegisterRequestDto();
 
+        userService.register(registerRequest);
+
         LoginRequestDto loginRequest = new LoginRequestDto(
                 registerRequest.email(),
-                "pass0000"
+                "wrongPassword"
         );
 
         assertThrows(BadCredentialsException.class,

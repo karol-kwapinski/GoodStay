@@ -1,13 +1,16 @@
 import {useEffect, useState} from "react";
 import {getAllHotelsByReservationDateAndCityName} from "../model/hotelAPI.js";
-import {getFacilities} from "../model/FacilityAPI.js";
+import {getFacilities} from "../model/facilityAPI.js";
+import {useNavigate, useSearchParams} from "react-router-dom";
 
 export function useHotelViewModel() {
 
+    const [searchParams] = useSearchParams();
+
     const [form, setForm] = useState({
-        cityName: "",
-        checkInDate: "",
-        checkOutDate: ""
+        cityName: searchParams.get("cityName") || "",
+        checkInDate: searchParams.get("checkInDate") || "",
+        checkOutDate: searchParams.get("checkOutDate") || ""
     });
 
     const [hotelList, setHotelList] = useState([]);
@@ -26,6 +29,7 @@ export function useHotelViewModel() {
             [event.target.name]: event.target.value
         });
     }
+    const navigate = useNavigate();
 
     const getNextDay = (dateString) => {
         if (!dateString) return "";
@@ -42,6 +46,7 @@ export function useHotelViewModel() {
 
         event.preventDefault();
         await searchHotels(selectedFacilities);
+        navigate(`/hotelListing?cityName=${form.cityName}&checkInDate=${form.checkInDate}&checkOutDate=${form.checkOutDate}`);
     }
 
     const searchHotels = async (facilities) => {
@@ -72,6 +77,17 @@ export function useHotelViewModel() {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        const fetchHotels = async () => {
+            await searchHotels(selectedFacilities);
+        }
+
+        if (form.cityName && form.checkInDate && form.checkOutDate) {
+            fetchHotels();
+        }
+
+    }, []);
 
     useEffect(() => {
         const fetchFacilities = async () => {

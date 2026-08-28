@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
@@ -64,6 +65,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
             @Param("facilities") List<String> facilities,
             @Param("facilityCount") long facilityCount
     );
+
+    Optional<Hotel> findHotelById(Long hotelId);
 
 }
 

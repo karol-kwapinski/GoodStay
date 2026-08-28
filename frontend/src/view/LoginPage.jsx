@@ -1,5 +1,5 @@
 import {useLoginViewModel} from "../viewmodel/useLoginViewModel.js";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 export default function LoginPage() {
 
@@ -7,8 +7,21 @@ export default function LoginPage() {
     const navigate = useNavigate();
 
     return (
-      <>
-          <form onSubmit={vm.handleSubmit}>
+      <div
+          style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center"
+          }}
+      >
+          <form
+              onSubmit={vm.handleSubmit}
+              style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "250px",
+              }}
+          >
               <input
                   name="email"
                   type="email"
@@ -38,6 +51,11 @@ export default function LoginPage() {
                   Login
               </button>
           </form>
-      </>
+          <Link
+            to={'/register'}
+          >
+              Don't have an account? Register here!
+          </Link>
+      </div>
     );
 }

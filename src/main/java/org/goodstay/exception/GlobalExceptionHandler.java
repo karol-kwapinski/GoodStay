@@ -78,4 +78,18 @@ public class GlobalExceptionHandler {
                 Map.of("code", "INVALID_ROOM_QUANTITY")
         );
     }
+
+    @ExceptionHandler(ReviewAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleReviewAlreadyExistsException() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of("code", "REVIEW_ALREADY_EXISTS")
+        );
+    }
+
+    @ExceptionHandler(HotelDoesNotExistException.class)
+    public ResponseEntity<Map<String, String>> handleHotelDoesNotExistException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of("code", "HOTEL_DOES_NOT_EXIST")
+        );
+    }
 }
