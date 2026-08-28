@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {getAllRoomsByDatesAndHotelId} from "../model/roomAPI.js";
 import {useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {useAuth} from "../config/authContext.jsx";
+import {addReview, getReviews} from "../model/reviewAPI.js";
 
 export function useRoomViewModel() {
 
@@ -15,8 +16,18 @@ export function useRoomViewModel() {
     const checkOutDate = searchParams.get("checkOutDate");
     const [rooms, setRooms] = useState([])
     const [selectedRoomTypes, setSelectedRoomTypes] = useState({});
-
+    const [reviews, setReviews] = useState([]);
     const {user} = useAuth();
+    const [form, setForm] = useState({
+        rating: "10",
+        comment: ""
+    });
+
+    const params = new URLSearchParams({
+        checkInDate,
+        checkOutDate,
+        roomTypes: JSON.stringify(selectedRoomTypes)
+    });
 
     const handleRoomTypeChange = (roomTypeId, quantity) => {
         setSelectedRoomTypes(prev => ({
@@ -25,16 +36,17 @@ export function useRoomViewModel() {
         }));
     }
 
-    const params = new URLSearchParams({
-        checkInDate,
-        checkOutDate,
-        roomTypes: JSON.stringify(selectedRoomTypes)
-    });
-
     const navigate = useNavigate();
 
     const isAnyRoomSelected = Object.values(selectedRoomTypes)
         .some(quantity => quantity > 0);
+
+    const handleChange = (event) => {
+        setForm(prev => ({
+            ...prev,
+            [event.target.name]: event.target.value
+        }))
+    }
 
     const isLoggedIn = () => !!user;
 
@@ -71,8 +83,62 @@ export function useRoomViewModel() {
 
         }
 
+        const loadReviews = async () => {
+            try {
+                const data = await getReviews(hotelId);
+                setReviews(data);
+            } catch (error) {
+                setReviews([]);
+                switch(error?.code) {
+                    case "SERVER_UNAVAILABLE":
+                        setError("Server is unavailable");
+                        break
+                    default:
+                        setError("Unknown error has occurred");
+                }
+            }
+        }
+
         loadRooms();
+        loadReviews();
     }, []);
+
+    const handleReviewSubmit = async (event) => {
+
+        event.preventDefault();
+
+        try {
+
+            const data = {
+                ...form,
+                hotelId
+            }
+            const review = await addReview(data);
+            setReviews(prev => [...prev, review])
+            setForm({
+                rating: "10",
+                comment: ""
+            });
+            setError(null);
+        } catch (error) {
+            switch(error?.code) {
+                case "SERVER_UNAVAILABLE":
+                    setError("Server is unavailable");
+                    break
+                case "USER_NOT_FOUND":
+                    setError("User has not been found");
+                    break
+                case "HOTEL_DOES_NOT_EXIST":
+                    setError("Hotel does not exist");
+                    break
+                case "REVIEW_ALREADY_EXISTS":
+                    setError("You have already submitted a review");
+                    break
+                default:
+                    setError("Unknown error has occurred");
+            }
+        }
+    }
 
     return {
         error,
@@ -82,8 +148,12 @@ export function useRoomViewModel() {
         params,
         selectedRoomTypes,
         isAnyRoomSelected,
+        reviews,
+        form,
         navigate,
         handleRoomTypeChange,
-        isLoggedIn
+        isLoggedIn,
+        handleChange,
+        handleReviewSubmit
     }
 }

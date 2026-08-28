@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {useParams, useSearchParams} from "react-router-dom";
 import {useAuth} from "../config/authContext.jsx";
-import {addReservation, getTotalPrice} from "../model/ReservationAPI.js";
+import {addReservation, getTotalPrice} from "../model/reservationAPI.js";
 
 export function useReservationViewModel() {
 

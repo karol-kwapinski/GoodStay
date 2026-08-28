@@ -62,6 +62,64 @@ export default function RoomListingPage() {
                 Reserve
             </button>
 
+            {vm.reviews?.length > 0 && (
+                <>
+                    <h3>Reviews: </h3>
+
+                    {vm.reviews.map((review) => (
+                        <>
+                            <p>Username: {review.userName}</p>
+                            <p>Rating: {review.rating}</p>
+                            {review.comment &&
+                                <p>Comment: {review.comment}</p>
+                            }
+                            <p>Review added: {review.createdAt}</p>
+                        </>
+                    ))}
+                </>
+            )}
+
+            <br/>
+            {vm.isLoggedIn() ? (
+                <div>
+                    <form onSubmit={vm.handleReviewSubmit}>
+
+                        <p>Rate hotel!</p>
+                        <select
+                            name="rating"
+                            onChange={vm.handleChange}
+                            value={vm.form.rating}
+                        >
+                            {Array.from({length: 10}, (_, i) => (
+                                <option key={i + 1} value={i + 1}>
+                                    {i + 1}
+                                </option>
+                            ))}
+                        </select>
+
+                        <textarea
+                            name="comment"
+                            onChange={vm.handleChange}
+                            value={vm.form.comment}
+                            placeholder="Comment"
+                            rows={5}
+                            maxLength={3000}
+                        />
+
+                        <button type="submit">
+                            Submit review
+                        </button>
+                    </form>
+                    {vm.error && (
+                        <div>
+                            {vm.error}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <p>Log in to submit a review!</p>
+            )}
+
         </div>
     )
 }

@@ -42,7 +42,7 @@ public class HotelServiceTest {
                 "Warsaw",
                 LocalDate.of(2026, 8, 15),
                 LocalDate.of(2026, 8, 30),
-                List.of("Parking")
+                List.of()
         );
 
         HotelListResponseDto response = new HotelListResponseDto(

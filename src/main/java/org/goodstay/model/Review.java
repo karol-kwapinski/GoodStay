@@ -9,6 +9,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "hotel_id"})
+        }
+)
 public class Review {
 
     @Id
@@ -20,15 +25,14 @@ public class Review {
 
     private String comment;
 
-    @NotNull
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hotel_id")
+    @JoinColumn(name = "hotel_id", nullable = false)
     private Hotel hotel;
 }

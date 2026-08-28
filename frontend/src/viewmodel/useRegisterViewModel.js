@@ -1,5 +1,4 @@
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
 import {registerUser} from "../model/userAPI.js";
 
 export function useRegisterViewModel() {
@@ -16,7 +15,6 @@ export function useRegisterViewModel() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const navigate = useNavigate();
 
     const handleChange = (event) => {
         setFormData({

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {getReservationDetails, getReservations} from "../model/ReservationAPI.js";
+import {getReservationDetails, getReservations} from "../model/reservationAPI.js";
 
 export function useReservationsViewModel() {
 

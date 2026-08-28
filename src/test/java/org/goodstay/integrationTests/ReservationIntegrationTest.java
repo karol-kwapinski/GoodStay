@@ -7,6 +7,7 @@ import org.goodstay.model.*;
 import org.goodstay.repository.*;
 import org.goodstay.service.ReservationService;
 import org.goodstay.service.UserService;
+import org.goodstay.util.TestDataFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,28 +33,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(SpringExtension.class)
 @TestPropertySource("classpath:application-test.properties")
 @ContextConfiguration(classes = {
-        ApplicationConfiguration.class
+        ApplicationConfiguration.class,
+        TestDataFactory.class
 })
 @Transactional
 public class ReservationIntegrationTest {
 
     @Autowired
-    private ReservationRepository reservationRepository;
+    private TestDataFactory testDataFactory;
 
     @Autowired
     private ReservationService reservationService;
 
     @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private HotelRepository hotelRepository;
-
-    @Autowired
-    private RoomTypeRepository roomTypeRepository;
+    private ReservationRepository reservationRepository;
 
     static Stream<Arguments> getInvalidRequests() {
         return Stream.of(
@@ -94,71 +87,6 @@ public class ReservationIntegrationTest {
         );
     }
 
-    User createUser(String email, UserRole role) {
-        User user = new User();
-        user.setRole(role);
-        user.setPassword("password");
-        user.setEmail(email);
-
-        return userRepository.save(user);
-    }
-
-    Hotel createHotel(User user) {
-
-        Hotel hotel = new Hotel();
-        hotel.setBrand("Hotel Warsaw");
-        hotel.setName("Hotel Warsaw");
-        hotel.setBuildingNumber("30B");
-        hotel.setCheckInFrom(LocalTime.of(14, 0, 0));
-        hotel.setCheckInUntil(LocalTime.of(21, 0,0));
-        hotel.setCheckOutUntil(LocalTime.of(12, 0,0));
-        hotel.setCityName("Warsaw");
-        hotel.setOwner(user);
-        hotel.setNumberOfRatings(0);
-        hotel.setStars(3);
-        hotel.setStreet("Mickiewicza");
-
-        return hotelRepository.save(hotel);
-    }
-
-    RoomType createRoomType(String name, Integer maxGuests) {
-        RoomType roomType = new RoomType();
-        roomType.setName(name);
-        roomType.setMaxGuests(maxGuests);
-
-        return roomTypeRepository.save(roomType);
-    }
-
-    Room createRoom(RoomType roomType, Hotel hotel, BigDecimal totalPrice) {
-        Room room = new Room();
-        room.setPricePerNight(totalPrice);
-        room.setRoomType(roomType);
-        room.setHotel(hotel);
-
-        return roomRepository.save(room);
-    }
-
-    Reservation createReservation(
-            List<Room> rooms,
-            User user,
-            LocalDate checkInDate,
-            LocalDate checkOutDate) {
-        Reservation reservation = new Reservation();
-        reservation.setCheckInDate(checkInDate);
-        reservation.setCheckOutDate(checkOutDate);
-        reservation.setGuestEmail("jan.kowalski@gmail.com");
-        reservation.setGuestFirstName("Jan");
-        reservation.setGuestLastName("Kowalski");
-        reservation.setGuestCountry("Poland");
-        reservation.setGuestPhoneNumber("555666777");
-        reservation.setStatus(ReservationStatus.PAID);
-        reservation.setTotalPrice(BigDecimal.valueOf(360.00));
-        reservation.setRooms(rooms);
-        reservation.setUser(user);
-
-        return reservationRepository.save(reservation);
-    }
-
     @Test
     void shouldAddReservation() {
 
@@ -167,12 +95,22 @@ public class ReservationIntegrationTest {
                 null
         );
 
-        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
-        User user = createUser("jan.nowak@gmail.com", UserRole.USER);
-        Hotel hotel = createHotel(owner);
-        RoomType roomType = createRoomType("Bedroom", 3);
-        Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(100.00));
-        Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(130.00));
+        User owner = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user = testDataFactory.createUser("jan.nowak@gmail.com", UserRole.USER);
+        Hotel hotel = testDataFactory.createHotel(
+                "Warsaw Hotel",
+                5,
+                "Good hotels",
+                "Warsaw",
+                "Mickiewicza",
+                "24B",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(14, 30, 0),
+                owner);
+        RoomType roomType = testDataFactory.createRoomType("Bedroom", 3);
+        Room room1 = testDataFactory.createRoom(roomType, hotel, BigDecimal.valueOf(100.00));
+        Room room2 = testDataFactory.createRoom(roomType, hotel, BigDecimal.valueOf(130.00));
 
         ReservationRequestDto request = new ReservationRequestDto(
                 LocalDate.of(2026, 8, 16),
@@ -210,7 +148,7 @@ public class ReservationIntegrationTest {
     @MethodSource("getInvalidRequests")
     void shouldThrowInvalidDateRangeException(String description, ReservationRequestDto request) {
 
-        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+        User user = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.USER);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
@@ -268,7 +206,7 @@ public class ReservationIntegrationTest {
                         ))
         );
 
-        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+        User user = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.USER);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
@@ -296,19 +234,35 @@ public class ReservationIntegrationTest {
                 ))
         );
 
-        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
-        User user1 = createUser("agata.nowak@interia.pl", UserRole.USER);
-        RoomType roomType = createRoomType("Bedroom", 3);
-        Hotel hotel = createHotel(owner);
-        Room room1 = createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
-        Room room2 = createRoom(roomType, hotel, BigDecimal.valueOf(180.00));
-        Reservation reservation = createReservation(
+        User owner = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user1 = testDataFactory.createUser("agata.nowak@interia.pl", UserRole.USER);
+        RoomType roomType = testDataFactory.createRoomType("Bedroom", 3);
+        Hotel hotel = testDataFactory.createHotel(
+                "Cracow Hotel",
+                3,
+                "Good hotels",
+                "Cracow",
+                "Mickiewicza",
+                "24B",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(14, 30, 0),
+                owner);
+        Room room1 = testDataFactory.createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
+        Room room2 = testDataFactory.createRoom(roomType, hotel, BigDecimal.valueOf(180.00));
+        testDataFactory.createReservation(
                 List.of(room1, room2),
                 user1,
                 LocalDate.of(2026, 8, 17),
-                LocalDate.of(2026, 8, 20));
+                LocalDate.of(2026, 8, 20),
+                "agata.nowak@interia.pl",
+                "Agata",
+                "Nowak",
+                "Poland",
+                "123456456",
+                ReservationStatus.PAID);
 
-        User user2 = createUser("daniel.kowal@gmail.com", UserRole.USER);
+        User user2 = testDataFactory.createUser("daniel.kowal@gmail.com", UserRole.USER);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user2.getEmail(),
@@ -336,7 +290,7 @@ public class ReservationIntegrationTest {
                 ))
         );
 
-        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+        User user = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.USER);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
@@ -349,29 +303,51 @@ public class ReservationIntegrationTest {
 
     @Test
     void shouldReturnReservations() {
-        User owner = createUser("Agata.kowal@interia.pl", UserRole.HOTEL_OWNER);
-        User user = createUser("jan.kowalski@gmail.com", UserRole.USER);
+        User owner = testDataFactory.createUser("Agata.kowal@interia.pl", UserRole.HOTEL_OWNER);
+        User user = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.USER);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
                 null
         );
 
-        Hotel hotel = createHotel(owner);
-        RoomType roomType = createRoomType("Bedroom", 3);
-        Room room = createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
+        Hotel hotel = testDataFactory.createHotel(
+                "Cracow Hotel",
+                3,
+                "Good hotels",
+                "Cracow",
+                "Mickiewicza",
+                "24B",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(14, 30, 0),
+                owner);
+        RoomType roomType = testDataFactory.createRoomType("Bedroom", 3);
+        Room room = testDataFactory.createRoom(roomType, hotel, BigDecimal.valueOf(120.00));
 
-        Reservation reservation1 = createReservation(
+        Reservation reservation1 = testDataFactory.createReservation(
                 List.of(room),
                 user,
                 LocalDate.of(2026, 8, 17),
-                LocalDate.of(2026, 8, 17));
+                LocalDate.of(2026, 8, 17),
+                "jan.kowalski@gmail.com",
+                "Jan",
+                "Kowalski",
+                "Poland",
+                "444555666",
+                ReservationStatus.PAID);
 
-        Reservation reservation2 = createReservation(
+        Reservation reservation2 = testDataFactory.createReservation(
                 List.of(room),
                 user,
                 LocalDate.of(2026, 6, 15),
-                LocalDate.of(2026, 6, 20));
+                LocalDate.of(2026, 6, 20),
+                "jan.kowalski@gmail.com",
+                "Jan",
+                "Kowalski",
+                "Poland",
+                "444555666",
+                ReservationStatus.PAID);
 
         ReservationInfoDto reservation1Info = new ReservationInfoDto(
                 reservation1.getId(),
@@ -411,23 +387,39 @@ public class ReservationIntegrationTest {
     @Test
     void shouldReturnReservationDetails() {
 
-        User owner = createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
-        User user = createUser("jan.nowak@gmail.com", UserRole.USER);
+        User owner = testDataFactory.createUser("jan.kowalski@gmail.com", UserRole.HOTEL_OWNER);
+        User user = testDataFactory.createUser("jan.nowak@gmail.com", UserRole.USER);
 
-        Hotel hotel = createHotel(owner);
+        Hotel hotel = testDataFactory.createHotel(
+                "Warsaw Hotel",
+                5,
+                "Good hotels",
+                "Warsaw",
+                "Mickiewicza",
+                "24B",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(14, 30, 0),
+                owner);
 
-        RoomType roomType1 = createRoomType("Bedroom", 3);
-        RoomType roomType2 = createRoomType("Apartment", 4);
+        RoomType roomType1 = testDataFactory.createRoomType("Bedroom", 3);
+        RoomType roomType2 = testDataFactory.createRoomType("Apartment", 4);
 
-        Room room1 = createRoom(roomType1, hotel, BigDecimal.valueOf(120.00));
-        Room room2 = createRoom(roomType1, hotel, BigDecimal.valueOf(150.00));
-        Room room3 = createRoom(roomType2, hotel, BigDecimal.valueOf(200.00));
+        Room room1 = testDataFactory.createRoom(roomType1, hotel, BigDecimal.valueOf(120.00));
+        Room room2 = testDataFactory.createRoom(roomType1, hotel, BigDecimal.valueOf(150.00));
+        Room room3 = testDataFactory.createRoom(roomType2, hotel, BigDecimal.valueOf(200.00));
 
-        Reservation reservation = createReservation(
+        Reservation reservation = testDataFactory.createReservation(
                 List.of(room1, room2, room3),
                 user,
                 LocalDate.of(2026, 8, 17),
-                LocalDate.of(2026, 8, 27)
+                LocalDate.of(2026, 8, 27),
+                "jan.nowak@gmail.com",
+                "Jan",
+                "Nowak",
+                "Poland",
+                "333444555",
+                ReservationStatus.PAID
         );
 
         RoomTypeAndMaxGuestsDto roomTypeAndMaxGuestsDto1 = new RoomTypeAndMaxGuestsDto(

@@ -30,6 +30,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/reservations/addReservation").authenticated()
                                 .requestMatchers("/api/reservations/getReservations").authenticated()
                                 .requestMatchers("/api/reservations/getReservationDetails/{reservationId}").authenticated()
+                                .requestMatchers("/api/reviews/addReview").authenticated()
                                 .anyRequest().permitAll()
                 )
                 .csrf(csrf -> csrf.disable())
