@@ -3,7 +3,7 @@ import RegisterPage from "./view/RegisterPage.jsx";
 import {AuthProvider} from "./config/authContext.jsx";
 import LoginPage from "./view/LoginPage.jsx";
 import HotelListingPage from "./view/HotelListingPage.jsx";
-import RoomListingPage from "./view/RoomListingPage.jsx";
+import HotelPage from "./view/HotelPage.jsx";
 import ReservationPage from "./view/ReservationPage.jsx";
 import UserPanelPage from "./view/UserPanelPage.jsx";
 import {useAuth} from "./config/authContext.jsx";
@@ -17,7 +17,7 @@ function AppContent() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/hotelListing" element={<HotelListingPage />} />
-            <Route path="/rooms/:hotelId" element={<RoomListingPage />} />
+            <Route path="/hotel/:hotelId" element={<HotelPage />} />
 
             <Route path="/reservation/:hotelId" element={ user ? <ReservationPage />
             : <Navigate to="/hotelListing"/> } />

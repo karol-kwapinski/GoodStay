@@ -3,7 +3,7 @@ package org.goodstay.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelListResponseDto;
+import org.goodstay.dto.HotelResponseDto;
 import org.goodstay.service.HotelService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +18,17 @@ public class HotelController {
     private final HotelService hotelService;
 
     @GetMapping("/getAllHotelsByResAndCity")
-    public ResponseEntity<List<HotelListResponseDto>> getAllHotelsByReservationDateAndCityName(
+    public ResponseEntity<List<HotelResponseDto>> getAllHotelsByReservationDateAndCityName(
             @Valid @ModelAttribute HotelListRequestDto request
             ) {
 
-        List<HotelListResponseDto> response = hotelService.getAvailableHotels(request);
+        List<HotelResponseDto> response = hotelService.getAvailableHotels(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getHotel/{hotelId}")
+    public ResponseEntity<HotelResponseDto> getHotel(@PathVariable("hotelId") Long hotelId) {
+        return ResponseEntity.ok(hotelService.getHotel(hotelId));
     }
 }

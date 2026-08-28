@@ -1,145 +1,183 @@
 import {useEffect, useState} from "react";
-import {getAllHotelsByReservationDateAndCityName} from "../model/hotelAPI.js";
-import {getFacilities} from "../model/facilityAPI.js";
-import {useNavigate, useSearchParams} from "react-router-dom";
+import {getAllRoomsByDatesAndHotelId} from "../model/roomAPI.js";
+import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useAuth} from "../config/authContext.jsx";
+import {addReview, getReviews} from "../model/reviewAPI.js";
+import {getHotelById} from "../model/hotelAPI.js";
 
 export function useHotelViewModel() {
 
+    const {hotelId} = useParams();
     const [searchParams] = useSearchParams();
 
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const checkInDate = searchParams.get("checkInDate");
+    const checkOutDate = searchParams.get("checkOutDate");
+    const [rooms, setRooms] = useState([])
+    const [selectedRoomTypes, setSelectedRoomTypes] = useState({});
+    const [reviews, setReviews] = useState([]);
+    const {user} = useAuth();
     const [form, setForm] = useState({
-        cityName: searchParams.get("cityName") || "",
-        checkInDate: searchParams.get("checkInDate") || "",
-        checkOutDate: searchParams.get("checkOutDate") || ""
+        rating: "10",
+        comment: ""
+    });
+    const [hotel, setHotel] = useState(null);
+
+    const params = new URLSearchParams({
+        checkInDate,
+        checkOutDate,
+        roomTypes: JSON.stringify(selectedRoomTypes)
     });
 
-    const [hotelList, setHotelList] = useState([]);
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(false)
-    const today = new Date();
-    const minDate =
-        `${today.getFullYear()}-${String(today.getMonth() + 1)
-            .padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    const [facilities, setFacilities] = useState([]);
-    const [selectedFacilities, setSelectedFacilities] = useState([]);
-
-    const handleChange = (event) => {
-        setForm({
-            ...form,
-            [event.target.name]: event.target.value
-        });
+    const handleRoomTypeChange = (roomTypeId, quantity) => {
+        setSelectedRoomTypes(prev => ({
+            ...prev,
+            [roomTypeId]: quantity
+        }));
     }
+
     const navigate = useNavigate();
 
-    const getNextDay = (dateString) => {
-        if (!dateString) return "";
+    const isAnyRoomSelected = Object.values(selectedRoomTypes)
+        .some(quantity => quantity > 0);
 
-        const [year, month, day] = dateString.split("-").map(Number);
-        const date = new Date(year, month - 1, day);
-
-        date.setDate(date.getDate() + 1);
-
-        return date.toLocaleDateString("en-CA");
-    };
-
-    const handleSubmit = async (event) => {
-
-        event.preventDefault();
-        await searchHotels(selectedFacilities);
-        navigate(`/hotelListing?cityName=${form.cityName}&checkInDate=${form.checkInDate}&checkOutDate=${form.checkOutDate}`);
+    const handleChange = (event) => {
+        setForm(prev => ({
+            ...prev,
+            [event.target.name]: event.target.value
+        }))
     }
 
-    const searchHotels = async (facilities) => {
-        try {
-            setLoading(true);
+    const isLoggedIn = () => !!user;
 
-            const response = await getAllHotelsByReservationDateAndCityName(
-                form.cityName,
-                form.checkInDate,
-                form.checkOutDate,
-                facilities
-            );
-            setHotelList(response);
+    useEffect(() => {
+        const loadRooms = async () => {
+
+            try {
+                setLoading(true);
+                const data = await getAllRoomsByDatesAndHotelId(
+                    hotelId,
+                    checkInDate,
+                    checkOutDate);
+
+                setRooms(data);
+            } catch(error) {
+
+                setRooms([]);
+                switch(error?.code) {
+                    case "METHOD_ARGUMENT_NOT_VALID":
+                        setError("Dates are not correct");
+                        break
+                    case "INVALID_DATE_RANGE":
+                        setError("Check out day has to be after check in date");
+                        break
+                    case "SERVER_UNAVAILABLE":
+                        setError("Server is unavailable");
+                        break
+                    default:
+                        setError("Unknown error has occurred");
+                }
+            } finally {
+                setLoading(false);
+            }
+
+        }
+
+        const loadReviews = async () => {
+            try {
+                const data = await getReviews(hotelId);
+                setReviews(data);
+            } catch (error) {
+                setReviews([]);
+                switch(error?.code) {
+                    case "SERVER_UNAVAILABLE":
+                        setError("Server is unavailable");
+                        break
+                    default:
+                        setError("Unknown error has occurred");
+                }
+            }
+        }
+
+        const loadHotel = async () => {
+            try {
+                const data = await getHotelById(hotelId);
+                setHotel(data);
+                setError(null);
+            } catch (error) {
+                setHotel(null);
+                switch(error?.code) {
+                    case "HOTEL_DOES_NOT_EXIST":
+                        setError("Hotel does not exist");
+                        break
+                    case "SERVER_UNAVAILABLE":
+                        setError("Server is unavailable");
+                        break
+                    default:
+                        setError("Unknown error has occurred");
+                }
+            }
+        }
+
+        loadHotel();
+        loadRooms();
+        loadReviews();
+    }, []);
+
+    const handleReviewSubmit = async (event) => {
+
+        event.preventDefault();
+
+        try {
+
+            const data = {
+                ...form,
+                hotelId
+            }
+            const review = await addReview(data);
+            setReviews(prev => [...prev, review])
+            setForm({
+                rating: "10",
+                comment: ""
+            });
             setError(null);
         } catch (error) {
-            setHotelList([]);
-            switch (error.code) {
-                case "INVALID_DATE_RANGE":
-                    setError("Date range is invalid");
-                    break
+            switch(error?.code) {
                 case "SERVER_UNAVAILABLE":
                     setError("Server is unavailable");
                     break
+                case "USER_NOT_FOUND":
+                    setError("User has not been found");
+                    break
+                case "HOTEL_DOES_NOT_EXIST":
+                    setError("Hotel does not exist");
+                    break
+                case "REVIEW_ALREADY_EXISTS":
+                    setError("You have already submitted a review");
+                    break
                 default:
-                    setError("Unknown Error has occurred");
+                    setError("Unknown error has occurred");
             }
-        } finally {
-            setLoading(false);
         }
     }
 
-    useEffect(() => {
-        const fetchHotels = async () => {
-            await searchHotels(selectedFacilities);
-        }
-
-        if (form.cityName && form.checkInDate && form.checkOutDate) {
-            fetchHotels();
-        }
-
-    }, []);
-
-    useEffect(() => {
-        const fetchFacilities = async () => {
-            if (!hotelList?.length) {
-                return;
-            }
-
-            try {
-                const params = new URLSearchParams();
-
-                hotelList.forEach(hotel => {
-                    params.append("hotelIds", hotel.id);
-                });
-
-                const data = await getFacilities(params);
-                setFacilities(data);
-
-            } catch (error) {
-                switch (error.code) {
-                    case "SERVER_UNAVAILABLE":
-                        setError("Server is unavailable");
-                        break;
-                    default:
-                        setError("Unknown Error has occurred");
-                }
-            }
-        };
-
-        fetchFacilities();
-    }, [hotelList]);
-
-    const handleFacilitiesChange = async (facility) => {
-        const newFacilities = selectedFacilities.includes(facility)
-            ? selectedFacilities.filter(f => f !== facility)
-            : [...selectedFacilities, facility];
-
-        setSelectedFacilities(newFacilities);
-
-        await searchHotels(newFacilities);
-    };
-
     return {
-        handleChange,
-        handleSubmit,
-        getNextDay,
-        handleFacilitiesChange,
-        hotelList,
-        form,
         error,
         loading,
-        minDate,
-        facilities,
-        selectedFacilities,
+        rooms,
+        hotelId,
+        params,
+        selectedRoomTypes,
+        isAnyRoomSelected,
+        reviews,
+        form,
+        hotel,
+        navigate,
+        handleRoomTypeChange,
+        isLoggedIn,
+        handleChange,
+        handleReviewSubmit
     }
 }

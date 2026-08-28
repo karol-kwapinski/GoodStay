@@ -1,6 +1,6 @@
 package org.goodstay.dto;
 
-public record HotelListResponseDto(
+public record HotelResponseDto(
         Long id,
         String name,
         String cityName,
