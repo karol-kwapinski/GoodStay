@@ -34,6 +34,7 @@ The system is built using Spring and follows a layered architecture (Controller 
 ### Testing
 - JUnit 5
 - Mockito
+- Spring Test - integration tests
 
 ---
 
