@@ -91,6 +91,7 @@ export default function HotelPage() {
                                 <p>Comment: {review.comment}</p>
                             }
                             <p>Review added: {review.createdAt}</p>
+                            <br />
                         </>
                     ))}
                 </>

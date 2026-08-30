@@ -10,6 +10,11 @@ import java.util.List;
 
 @Entity
 @Data
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"cityName", "street", "buildingNumber"})
+        }
+)
 public class Hotel {
 
     @Id

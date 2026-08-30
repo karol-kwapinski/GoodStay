@@ -1,6 +1,5 @@
 package org.goodstay.repository;
 
-import org.goodstay.model.Facility;
 import org.goodstay.model.Hotel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -67,6 +66,14 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     );
 
     Optional<Hotel> findHotelById(Long hotelId);
+
+    List<Hotel> findHotelsByOwnerId(Long ownerId);
+
+    boolean existsHotelsByCityNameAndStreetAndBuildingNumber(
+            String cityName,
+            String street,
+            String buildingNumber
+    );
 
 }
 

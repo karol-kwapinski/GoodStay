@@ -2,6 +2,7 @@ package org.goodstay.service;
 
 
 import org.goodstay.dto.CurrentUserDto;
+import org.goodstay.dto.HotelOwnerResponseDto;
 import org.goodstay.dto.LoginRequestDto;
 import org.goodstay.dto.RegisterRequestDto;
 import org.goodstay.exception.EmailAlreadyExistsException;
@@ -25,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -294,6 +296,35 @@ class UserServiceTest {
 
         assertThrows(NoSuchElementException.class,
                 () -> userService.getCurrentUser(authentication));
+    }
+
+    @Test
+    void shouldReturnAllHotelOwnersEmails() {
+        User owner1 = new User();
+        owner1.setId(1L);
+        owner1.setEmail("jan.kowalski@gmail.com");
+
+        User owner2 = new User();
+        owner2.setId(2L);
+        owner2.setEmail("adam.nowak@interia.pl");
+
+        User owner3 = new User();
+        owner3.setId(3L);
+        owner3.setEmail("agata.nowakowska@gmail.com");
+
+        List<HotelOwnerResponseDto> expected = List.of(
+                new HotelOwnerResponseDto(owner1.getId(), owner1.getEmail()),
+                new HotelOwnerResponseDto(owner2.getId(), owner2.getEmail()),
+                new HotelOwnerResponseDto(owner3.getId(), owner3.getEmail())
+        );
+
+        when(userRepository.findAllByRole(UserRole.HOTEL_OWNER))
+                .thenReturn(List.of(owner1, owner2, owner3));
+
+        List<HotelOwnerResponseDto> ownerEmails = userService.getHotelAllOwners();
+
+        assertEquals(expected, ownerEmails);
+        verify(userRepository).findAllByRole(UserRole.HOTEL_OWNER);
     }
 
 }

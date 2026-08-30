@@ -1,10 +1,7 @@
 package org.goodstay.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.goodstay.dto.CurrentUserDto;
-import org.goodstay.dto.LoginRequestDto;
-import org.goodstay.dto.LoginResultDto;
-import org.goodstay.dto.RegisterRequestDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.GlobalExceptionHandler;
 import org.goodstay.service.UserService;
@@ -25,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -273,6 +271,34 @@ class UserControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(userService).getCurrentUser(any(Authentication.class));
+    }
+
+    @Test
+    void shouldReturnAllHotelOwnersEmails() throws Exception {
+
+        when(userService.getHotelAllOwners())
+                .thenReturn(List.of(
+                        new HotelOwnerResponseDto(
+                                1L,
+                                "jan.kowalski@gmail.com"
+                        ),
+                        new HotelOwnerResponseDto(
+                                2L,
+                                "adam.nowak@gmail.com"
+                        )
+                ));
+
+        mockMvc.perform(get("/api/users/getAllHotelOwnersEmails"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].email")
+                        .value("jan.kowalski@gmail.com"))
+                .andExpect(jsonPath("$[1].id").value(2L))
+                .andExpect(jsonPath("$[1].email")
+                        .value("adam.nowak@gmail.com"));
+
+        verify(userService).getHotelAllOwners();
     }
 
 }

@@ -2,6 +2,8 @@ package org.goodstay.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.goodstay.dto.AddHotelRequestDto;
+import org.goodstay.dto.HotelBasicInfoDto;
 import org.goodstay.dto.HotelListRequestDto;
 import org.goodstay.dto.HotelResponseDto;
 import org.goodstay.service.HotelService;
@@ -30,5 +32,10 @@ public class HotelController {
     @GetMapping("/getHotel/{hotelId}")
     public ResponseEntity<HotelResponseDto> getHotel(@PathVariable("hotelId") Long hotelId) {
         return ResponseEntity.ok(hotelService.getHotel(hotelId));
+    }
+
+    @PostMapping("/addHotel")
+    public ResponseEntity<HotelBasicInfoDto> addHotel(@Valid @RequestBody AddHotelRequestDto request) {
+        return ResponseEntity.ok(hotelService.addHotel(request));
     }
 }
