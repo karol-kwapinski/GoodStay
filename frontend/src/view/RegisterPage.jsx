@@ -74,6 +74,12 @@ export default function RegisterPage() {
                         </div>
                     )}
 
+                    {vm.successMessage && (
+                        <div>
+                            {vm.successMessage}
+                        </div>
+                    )}
+
                     <button type="submit" disabled={vm.loading}>
                         Register
                     </button>

@@ -46,7 +46,7 @@ export function useHotelListingViewModel() {
 
         event.preventDefault();
         await searchHotels(selectedFacilities);
-        navigate(`/hotelListing?cityName=${form.cityName}&checkInDate=${form.checkInDate}&checkOutDate=${form.checkOutDate}`);
+        navigate(`/?cityName=${form.cityName}&checkInDate=${form.checkInDate}&checkOutDate=${form.checkOutDate}`);
     }
 
     const searchHotels = async (facilities) => {

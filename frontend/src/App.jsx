@@ -7,6 +7,7 @@ import HotelPage from "./view/HotelPage.jsx";
 import ReservationPage from "./view/ReservationPage.jsx";
 import UserPanelPage from "./view/UserPanelPage.jsx";
 import {useAuth} from "./config/authContext.jsx";
+import {AdminPanelPage} from "./view/AdminPanelPage.jsx";
 
 function AppContent() {
 
@@ -16,7 +17,7 @@ function AppContent() {
         <Routes>
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/hotelListing" element={<HotelListingPage />} />
+            <Route path="/" element={<HotelListingPage />} />
             <Route path="/hotel/:hotelId" element={<HotelPage />} />
 
             <Route path="/reservation/:hotelId" element={ user ? <ReservationPage />
@@ -24,6 +25,8 @@ function AppContent() {
 
             <Route path="/userPanel" element={ user ? < UserPanelPage/>
                 : <Navigate to="/hotelListing" />} />
+            <Route path="/adminPanel" element={ user?.role === 'ADMIN' ? <AdminPanelPage />
+            : <Navigate to="/adminPanel" />} />
         </Routes>
     )
 }

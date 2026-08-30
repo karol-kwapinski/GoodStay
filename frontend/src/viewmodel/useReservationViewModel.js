@@ -74,7 +74,7 @@ export function useReservationViewModel() {
                         setError("Unknown error has occurred");
                         break
                     default:
-                        setError("Failed to add reservation");
+                        setError("Failed to fetch total price");
                         break
                 }
             }

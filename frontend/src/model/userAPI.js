@@ -16,3 +16,7 @@ export const logoutUser = () => {
 export const getCurrentUser = () => {
     return getApi("/api/users/me");
 }
+
+export const getAllHotelOwnersEmails = () => {
+    return getApi("/api/users/getAllHotelOwnersEmails");
+}

@@ -92,4 +92,18 @@ public class GlobalExceptionHandler {
                 Map.of("code", "HOTEL_DOES_NOT_EXIST")
         );
     }
+
+    @ExceptionHandler(InvalidTimeRangeException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidTimeRangeException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("code", "INVALID_TIME_RANGE")
+        );
+    }
+
+    @ExceptionHandler(HotelWithSameLocationDataAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleHotelWithSameLocationDataAlreadyExistsException() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of("code", "INVALID_HOTEL_DATA")
+        );
+    }
 }

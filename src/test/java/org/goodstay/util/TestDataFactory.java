@@ -110,6 +110,13 @@ public class TestDataFactory {
         return facilityRepository.save(facility);
     }
 
+    public Facility createFacilityWithHotels(String name, List<Hotel> hotels) {
+        Facility facility = new Facility();
+        facility.setName(name);
+        facility.setHotels(hotels);
+        return facilityRepository.save(facility);
+    }
+
     public Review createReview(Integer rating, String comment, Hotel hotel, User user) {
         Review review = new Review();
         review.setRating(rating);

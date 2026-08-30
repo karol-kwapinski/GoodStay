@@ -2,10 +2,7 @@ package org.goodstay.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.goodstay.dto.LoginRequestDto;
-import org.goodstay.dto.CurrentUserDto;
-import org.goodstay.dto.LoginResultDto;
-import org.goodstay.dto.RegisterRequestDto;
+import org.goodstay.dto.*;
 import org.goodstay.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,5 +64,10 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<CurrentUserDto> getCurrentUser(Authentication authentication) {
         return ResponseEntity.ok(userService.getCurrentUser(authentication));
+    }
+
+    @GetMapping("/getAllHotelOwnersEmails")
+    public ResponseEntity<List<HotelOwnerResponseDto>> getAllHotelOwnersEmails() {
+        return ResponseEntity.ok(userService.getHotelAllOwners());
     }
 }

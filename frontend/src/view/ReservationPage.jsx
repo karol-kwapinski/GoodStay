@@ -49,7 +49,7 @@ export default function ReservationPage() {
                     {vm.error}
                 </div>
             )}
-            <p>Total price: {vm.totalPrice}</p>
+            <p>Total price: {vm.totalPrice} zł</p>
         </div>
     )
 }

@@ -24,7 +24,15 @@ export default function Header() {
                     </button>
                 </div>
             )}
-            <Link to={'/hotelListing'}> GoodStay </Link>
+            {user?.role === 'ADMIN' && (
+                <Link to={'/adminPanel'}> Admin Panel</Link>
+            )}
+            <Link to={'/'}> GoodStay </Link>
+            {user && (
+                <>
+                    <p>Logged in as: {user.email}</p>
+                </>
+            )}
         </div>
     )
 }

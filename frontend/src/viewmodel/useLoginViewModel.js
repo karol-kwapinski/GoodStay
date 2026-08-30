@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {loginUser, logoutUser} from "../model/userAPI.js";
 import {useAuth} from "../config/authContext.jsx"
+import {useNavigate} from "react-router-dom";
 
 export function useLoginViewModel() {
 
@@ -12,6 +13,7 @@ export function useLoginViewModel() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const { setUser } = useAuth();
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         setFormData({
@@ -52,6 +54,7 @@ export function useLoginViewModel() {
         try {
             await logoutUser();
             setUser(null);
+            navigate('/login');
         } catch (error) {
             setError("Could not log out user");
         }

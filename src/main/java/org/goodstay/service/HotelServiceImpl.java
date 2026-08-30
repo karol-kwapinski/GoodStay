@@ -1,14 +1,18 @@
 package org.goodstay.service;
 
 import lombok.RequiredArgsConstructor;
+import org.goodstay.dto.AddHotelRequestDto;
+import org.goodstay.dto.HotelBasicInfoDto;
 import org.goodstay.dto.HotelListRequestDto;
 import org.goodstay.dto.HotelResponseDto;
-import org.goodstay.exception.HotelDoesNotExistException;
-import org.goodstay.exception.InvalidDateRangeException;
+import org.goodstay.exception.*;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
+import org.goodstay.model.User;
 import org.goodstay.repository.HotelRepository;
+import org.goodstay.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +22,7 @@ public class HotelServiceImpl implements HotelService{
 
     private final HotelRepository hotelRepository;
     private final HotelMapper hotelMapper;
+    private final UserRepository userRepository;
 
     public List<HotelResponseDto> getAvailableHotels(HotelListRequestDto request) {
 
@@ -52,5 +57,31 @@ public class HotelServiceImpl implements HotelService{
        );
 
        return hotelMapper.toDto(hotel);
+    }
+
+    @Transactional
+    public HotelBasicInfoDto addHotel(AddHotelRequestDto request) {
+
+        User owner = userRepository.findById(request.ownerId()).orElseThrow(
+                UserNotFoundException::new
+        );
+
+        if (request.checkInUntil().isBefore(request.checkInFrom())
+            || request.checkOutUntil().isAfter(request.checkInFrom())) {
+            throw new InvalidTimeRangeException();
+        }
+
+        if (hotelRepository.existsHotelsByCityNameAndStreetAndBuildingNumber(
+                request.cityName(),
+                request.street(),
+                request.buildingNumber()
+        )) {
+            throw new HotelWithSameLocationDataAlreadyExistsException();
+        }
+
+        Hotel hotel = hotelMapper.toEntity(request, owner);
+        Hotel saved = hotelRepository.save(hotel);
+
+        return hotelMapper.toHotelBasicInfoDto(saved);
     }
 }

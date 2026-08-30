@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {registerUser} from "../model/userAPI.js";
+import {useNavigate} from "react-router-dom";
 
 export function useRegisterViewModel() {
 
@@ -14,7 +15,9 @@ export function useRegisterViewModel() {
     })
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         setFormData({
@@ -30,8 +33,13 @@ export function useRegisterViewModel() {
         try {
             setLoading(true);
             await registerUser(formData);
-            setError("");
+            setError(null);
+            setSuccessMessage("You have been registered!")
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         } catch (e) {
+            setSuccessMessage(null)
             switch (e.code) {
                 case "EMAIL_ALREADY_EXISTS":
                     setError("Email already exists");
@@ -52,6 +60,7 @@ export function useRegisterViewModel() {
         handleChange,
         formData,
         loading,
-        error
+        error,
+        successMessage
     }
 }

@@ -1,9 +1,6 @@
 package org.goodstay.service;
 
-import org.goodstay.dto.LoginRequestDto;
-import org.goodstay.dto.CurrentUserDto;
-import org.goodstay.dto.LoginResultDto;
-import org.goodstay.dto.RegisterRequestDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.EmailAlreadyExistsException;
 import org.goodstay.exception.PasswordMismatchException;
 import org.goodstay.model.User;
@@ -16,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -100,5 +99,15 @@ public class UserServiceImpl implements UserService {
                 user.getCountry(),
                 user.getRole().name()
         );
+    }
+
+    public List<HotelOwnerResponseDto> getHotelAllOwners() {
+        List<User> allHotelOwners = userRepository.findAllByRole(UserRole.HOTEL_OWNER);
+
+        return allHotelOwners.stream()
+                .map(owner -> new HotelOwnerResponseDto(
+                        owner.getId(),
+                        owner.getEmail()))
+                .toList();
     }
 }

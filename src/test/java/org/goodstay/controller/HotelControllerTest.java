@@ -1,9 +1,13 @@
 package org.goodstay.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.goodstay.dto.AddHotelRequestDto;
 import org.goodstay.dto.HotelListRequestDto;
 import org.goodstay.dto.HotelResponseDto;
 import org.goodstay.exception.GlobalExceptionHandler;
 import org.goodstay.exception.InvalidDateRangeException;
+import org.goodstay.model.User;
 import org.goodstay.service.HotelService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,17 +18,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +45,23 @@ public class HotelControllerTest {
     private HotelController hotelController;
 
     private MockMvc mockMvc;
+
+    private ObjectMapper objectMapper;
+
+    private AddHotelRequestDto createValidAddHotelRequestDto() {
+        return new AddHotelRequestDto(
+                "Warsaw hotel",
+                "Warsaw",
+                "Mickiewicza",
+                "42C",
+                4,
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(11, 0, 0),
+                "Good hotels",
+                1L
+        );
+    }
 
     static Stream<Arguments> invalidGetHotelsRequests() {
         return Stream.of(
@@ -82,6 +106,10 @@ public class HotelControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
+
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
     }
 
     @Test
@@ -168,6 +196,19 @@ public class HotelControllerTest {
     void shouldReturnOkStatusWhenFetchingHotel() throws Exception {
         mockMvc.perform(get("/api/hotels/getHotel/{hotelId}", 1L))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldAddHotel() throws Exception {
+
+        AddHotelRequestDto request = createValidAddHotelRequestDto();
+
+        mockMvc.perform(post("/api/hotels/addHotel")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(hotelService).addHotel(request);
     }
 
 }
