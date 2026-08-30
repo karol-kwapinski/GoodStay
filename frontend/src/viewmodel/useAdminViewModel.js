@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {addHotel} from "../model/hotelAPI.js";
+import {addHotel, getHotels} from "../model/hotelAPI.js";
 import {getAllHotelOwnersEmails} from "../model/userAPI.js";
 
 export function useAdminViewModel() {
@@ -17,9 +17,13 @@ export function useAdminViewModel() {
         ownerId: ""
     };
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [addHotelForm, setAddHotelForm] = useState(initialForm);
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [hotelOwnersEmails, setHotelOwnerEmails] = useState([]);
+    const [hotels, setHotels] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [numberOfPages, setNumberOfPages] = useState();
 
     const handleFormVisibility = () => setIsFormVisible(prev => !prev);
 
@@ -47,8 +51,42 @@ export function useAdminViewModel() {
             }
         }
 
+        fetchHotels(0);
         fetchHotelOwnersEmails();
     }, []);
+
+    const fetchHotels = async (pageDiff) => {
+
+        const nextPage = currentPage + pageDiff;
+
+        if (pageDiff < -1 || pageDiff > 1) {
+            return;
+        }
+
+        if (nextPage < 0 || nextPage >= numberOfPages) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const data = await getHotels(nextPage, 2);
+            setHotels(data.content);
+            setCurrentPage(data.page);
+            setNumberOfPages(data.totalPages);
+            setError(null);
+        } catch (error) {
+            setHotels([]);
+            switch(error?.code) {
+                case "SERVER_UNAVAILABLE":
+                    setError("Server is unavailable");
+                    break
+                default:
+                    setError("Could not fetch hotels");
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleAddHotel = async (event) => {
         event.preventDefault();
@@ -59,7 +97,8 @@ export function useAdminViewModel() {
                 stars: Number(addHotelForm.stars),
                 ownerId: Number(addHotelForm.ownerId)
             }
-            await addHotel(data);
+            const addedHotel = await addHotel(data);
+            setHotels(prev => [...prev, addedHotel]);
             setError(null);
             setAddHotelForm(initialForm);
             setIsFormVisible(false);
@@ -94,8 +133,11 @@ export function useAdminViewModel() {
         addHotelForm,
         isFormVisible,
         hotelOwnersEmails,
+        loading,
+        hotels,
         handleChangeAddHotelForm,
         handleAddHotel,
-        handleFormVisibility
+        handleFormVisibility,
+        fetchHotels
     }
 }

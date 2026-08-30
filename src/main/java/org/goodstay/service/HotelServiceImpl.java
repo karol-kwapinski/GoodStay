@@ -1,16 +1,16 @@
 package org.goodstay.service;
 
 import lombok.RequiredArgsConstructor;
-import org.goodstay.dto.AddHotelRequestDto;
-import org.goodstay.dto.HotelBasicInfoDto;
-import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
 import org.goodstay.model.User;
 import org.goodstay.repository.HotelRepository;
 import org.goodstay.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,5 +83,11 @@ public class HotelServiceImpl implements HotelService{
         Hotel saved = hotelRepository.save(hotel);
 
         return hotelMapper.toHotelBasicInfoDto(saved);
+    }
+
+    public PageResponse<HotelBasicInfoDto> getAllHotels(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Hotel> pageWithHotels = hotelRepository.findAll(pageable);
+        return hotelMapper.toPage(pageWithHotels);
     }
 }

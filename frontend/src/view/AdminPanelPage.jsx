@@ -6,8 +6,61 @@ export function AdminPanelPage() {
     const vm = useAdminViewModel();
 
     return (
-        <div>
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center"
+            }}
+        >
             <Header />
+            {vm.loading && (
+                <>
+                    {vm.loading}
+                </>
+            )}
+            {vm.error && (
+                <>
+                    {vm.error}
+                </>
+            )}
+            {vm.hotels?.length > 0 && (
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>City</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {vm.hotels.map((hotel) => (
+                                <tr key={hotel.id}>
+                                    <td>{hotel.id}</td>
+                                    <td>{hotel.name}</td>
+                                    <td>{hotel.cityName}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <button onClick={() => vm.fetchHotels(-1)}
+                            style={{
+                                width: "100px"
+                            }}
+                    >
+                        Previous page
+                    </button>
+                    <button onClick={() => vm.fetchHotels(1)}
+                        style={{
+                            width: "100px"
+                        }}
+                    >
+                        Next page
+                    </button>
+                    <br/><br/><br/>
+                </div>
+            )}
             {vm.isFormVisible ? (
                 <div
                     style={{
@@ -110,6 +163,7 @@ export function AdminPanelPage() {
                                 value={vm.addHotelForm.checkOutUntil}
                             />
                         </div>
+
                         <button type="submit">
                             Add hotel
                         </button>

@@ -44,7 +44,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private Set<GrantedAuthority> getAuthorities(UserRole role) {
         return Set.of(
-                new SimpleGrantedAuthority(role.name())
+                new SimpleGrantedAuthority("ROLE_" + role.name())
         );
     }
 }

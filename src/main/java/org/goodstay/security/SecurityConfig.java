@@ -1,6 +1,7 @@
 package org.goodstay.security;
 
 import lombok.RequiredArgsConstructor;
+import org.goodstay.model.UserRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -31,6 +32,10 @@ public class SecurityConfig {
                                 .requestMatchers("/api/reservations/getReservations").authenticated()
                                 .requestMatchers("/api/reservations/getReservationDetails/{reservationId}").authenticated()
                                 .requestMatchers("/api/reviews/addReview").authenticated()
+                                .requestMatchers("/api/hotels/addHotel").hasRole("ADMIN")
+                                .requestMatchers("/api/hotels/getHotels").hasRole("ADMIN")
+                                .requestMatchers("/api/users/logout").authenticated()
+                                .requestMatchers("/api/users/getAllHotelOwnersEmails").hasRole("ADMIN")
                                 .anyRequest().permitAll()
                 )
                 .csrf(csrf -> csrf.disable())

@@ -11,3 +11,7 @@ export const getHotelById = (hotelId) => {
 export const addHotel = (data) => {
     return postApi('/api/hotels/addHotel', data);
 }
+
+export const getHotels = (pageNumber, pageSize) => {
+    return getApi(`/api/hotels/getHotels?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+}

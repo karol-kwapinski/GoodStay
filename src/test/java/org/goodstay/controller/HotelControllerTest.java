@@ -211,4 +211,14 @@ public class HotelControllerTest {
         verify(hotelService).addHotel(request);
     }
 
+    @Test
+    void shouldReturnOkStatusWhenFetchingHotels() throws Exception {
+        mockMvc.perform(get("/api/hotels/getHotels")
+                .param("pageNumber", "0")
+                .param("pageSize", "10"))
+                .andExpect(status().isOk());
+
+        verify(hotelService).getAllHotels(0, 10);
+    }
+
 }
