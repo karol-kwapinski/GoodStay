@@ -3,8 +3,10 @@ package org.goodstay.mapper;
 import org.goodstay.dto.AddHotelRequestDto;
 import org.goodstay.dto.HotelBasicInfoDto;
 import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.dto.PageResponse;
 import org.goodstay.model.Hotel;
 import org.goodstay.model.User;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -51,6 +53,24 @@ public class HotelMapper {
                 hotel.getId(),
                 hotel.getName(),
                 hotel.getCityName()
+        );
+    }
+
+    public PageResponse<HotelBasicInfoDto> toPage(Page<Hotel> page) {
+
+        List<HotelBasicInfoDto> content = page.getContent().stream()
+                .map(hotel -> new HotelBasicInfoDto(
+                        hotel.getId(),
+                        hotel.getName(),
+                        hotel.getCityName()))
+                .toList();
+
+        return new PageResponse<HotelBasicInfoDto>(
+                content,
+                page.getSize(),
+                page.getNumber(),
+                page.getTotalElements(),
+                page.getTotalPages()
         );
     }
 }

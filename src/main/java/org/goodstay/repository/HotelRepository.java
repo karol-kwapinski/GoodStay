@@ -1,6 +1,8 @@
 package org.goodstay.repository;
 
 import org.goodstay.model.Hotel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -74,6 +76,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
             String street,
             String buildingNumber
     );
+
+    Page<Hotel> findAll(Pageable pageable);
 
 }
 

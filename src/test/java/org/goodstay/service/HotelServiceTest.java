@@ -1,9 +1,6 @@
 package org.goodstay.service;
 
-import org.goodstay.dto.AddHotelRequestDto;
-import org.goodstay.dto.HotelBasicInfoDto;
-import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
@@ -19,6 +16,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -424,6 +424,56 @@ public class HotelServiceTest {
                 request.buildingNumber()
         );
         verifyNoInteractions(hotelMapper);
+    }
+
+    @Test
+    void shouldReturnHotelsWithGivenPageNumberAndSize() {
+
+        Hotel hotel1 = new Hotel();
+        Hotel hotel2 = new Hotel();
+        Hotel hotel3 = new Hotel();
+
+        List<Hotel> hotels = List.of(hotel1, hotel2, hotel3);
+        Page<Hotel> expectedPage = new PageImpl<>(hotels);
+
+        HotelBasicInfoDto hotel1Info = new HotelBasicInfoDto(
+                1L,
+                "Great hotel",
+                "Warsaw"
+        );
+
+        HotelBasicInfoDto hotel2Info = new HotelBasicInfoDto(
+                2L,
+                "Good hotel",
+                "Cracow"
+        );
+
+        HotelBasicInfoDto hotel3Info = new HotelBasicInfoDto(
+                3L,
+                "Just hotel",
+                "Poznan"
+        );
+
+        PageResponse<HotelBasicInfoDto> expectedResponse = new PageResponse<>(
+                List.of(hotel1Info, hotel2Info, hotel3Info),
+                10,
+                0,
+                3,
+                1
+        );
+
+        when(hotelRepository.findAll(PageRequest.of(0, 10)))
+                .thenReturn(expectedPage);
+
+        when(hotelMapper.toPage(expectedPage))
+                .thenReturn(expectedResponse);
+
+        PageResponse<HotelBasicInfoDto> response = hotelService.getAllHotels(0, 10);
+
+        assertEquals(expectedResponse, response);
+
+        verify(hotelRepository).findAll(PageRequest.of(0, 10));
+        verify(hotelMapper).toPage(expectedPage);
     }
 
  }

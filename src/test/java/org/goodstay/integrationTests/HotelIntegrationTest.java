@@ -1,10 +1,7 @@
 package org.goodstay.integrationTests;
 
 import org.goodstay.configuration.ApplicationConfiguration;
-import org.goodstay.dto.AddHotelRequestDto;
-import org.goodstay.dto.HotelBasicInfoDto;
-import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.dto.*;
 import org.goodstay.exception.*;
 import org.goodstay.model.*;
 import org.goodstay.repository.HotelRepository;
@@ -16,6 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -323,6 +324,84 @@ public class HotelIntegrationTest {
 
         assertThrows(HotelWithSameLocationDataAlreadyExistsException.class,
                 () -> hotelService.addHotel(request));
+    }
+
+    @Test
+    void shouldReturnHotelsWithGivenPageNumberAndSize() {
+
+        User owner = testDataFactory.createUser(
+                "jan.kowalski@gmail.com",
+                UserRole.HOTEL_OWNER
+        );
+
+        Hotel hotel1 = testDataFactory.createHotel(
+                "Great hotel",
+                4,
+                "Good hotels",
+                "Warsaw",
+                "Mickiewicza",
+                "19C",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(20, 0, 0),
+                LocalTime.of(10, 0, 0),
+                owner
+        );
+
+        Hotel hotel2 = testDataFactory.createHotel(
+                "Super hotels",
+                5,
+                "Super",
+                "Cracow",
+                "Domowskiego",
+                "60",
+                LocalTime.of(13, 0, 0),
+                LocalTime.of(20, 0, 0),
+                LocalTime.of(10, 0, 0),
+                owner
+        );
+
+        Hotel hotel3 = testDataFactory.createHotel(
+                "Modern",
+                3,
+                "Modern",
+                "Poznan",
+                "Gotowicza",
+                "90A",
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(9, 0, 0),
+                owner
+        );
+
+        HotelBasicInfoDto hotel1Info = new HotelBasicInfoDto(
+                hotel1.getId(),
+                hotel1.getName(),
+                hotel1.getCityName()
+        );
+
+        HotelBasicInfoDto hotel2Info = new HotelBasicInfoDto(
+                hotel2.getId(),
+                hotel2.getName(),
+                hotel2.getCityName()
+        );
+
+        HotelBasicInfoDto hotel3Info = new HotelBasicInfoDto(
+                hotel3.getId(),
+                hotel3.getName(),
+                hotel3.getCityName()
+        );
+
+        PageResponse<HotelBasicInfoDto> expectedResponse = new PageResponse<>(
+                List.of(hotel1Info, hotel2Info, hotel3Info),
+                10,
+                0,
+                3,
+                1
+        );
+
+        PageResponse<HotelBasicInfoDto> response = hotelService.getAllHotels(0, 10);
+
+        assertEquals(expectedResponse, response);
     }
 
 }

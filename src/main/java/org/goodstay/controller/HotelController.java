@@ -2,10 +2,7 @@ package org.goodstay.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.goodstay.dto.AddHotelRequestDto;
-import org.goodstay.dto.HotelBasicInfoDto;
-import org.goodstay.dto.HotelListRequestDto;
-import org.goodstay.dto.HotelResponseDto;
+import org.goodstay.dto.*;
 import org.goodstay.service.HotelService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +34,11 @@ public class HotelController {
     @PostMapping("/addHotel")
     public ResponseEntity<HotelBasicInfoDto> addHotel(@Valid @RequestBody AddHotelRequestDto request) {
         return ResponseEntity.ok(hotelService.addHotel(request));
+    }
+
+    @GetMapping("/getHotels")
+    public ResponseEntity<PageResponse<HotelBasicInfoDto>> getHotels(
+            @RequestParam("pageNumber") int pageNumber, @RequestParam("pageSize") int pageSize) {
+        return ResponseEntity.ok(hotelService.getAllHotels(pageNumber, pageSize));
     }
 }
