@@ -67,8 +67,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
             @Param("facilityCount") long facilityCount
     );
 
-    Optional<Hotel> findHotelById(Long hotelId);
-
     List<Hotel> findHotelsByOwnerId(Long ownerId);
 
     boolean existsHotelsByCityNameAndStreetAndBuildingNumber(
@@ -77,7 +75,15 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
             String buildingNumber
     );
 
-    Page<Hotel> findAll(Pageable pageable);
+    Page<Hotel> findAllByOrderByIdAsc(Pageable pageable);
+
+    @Query("""
+        SELECT h
+        FROM Hotel h
+        JOIN FETCH h.owner
+        WHERE h.id = :hotelId
+    """)
+    Optional<Hotel> findByIdAndFetchOwner(@Param("hotelId") Long hotelId);
 
 }
 

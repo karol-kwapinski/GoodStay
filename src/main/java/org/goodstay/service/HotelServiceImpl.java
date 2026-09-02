@@ -24,6 +24,20 @@ public class HotelServiceImpl implements HotelService{
     private final HotelMapper hotelMapper;
     private final UserRepository userRepository;
 
+    private User prepareForEditOrAddHotel(HotelRequestDto request) {
+
+        User owner = userRepository.findById(request.ownerId()).orElseThrow(
+                UserNotFoundException::new
+        );
+
+        if (request.checkInUntil().isBefore(request.checkInFrom())
+                || request.checkOutUntil().isAfter(request.checkInFrom())) {
+            throw new InvalidTimeRangeException();
+        }
+
+        return owner;
+    }
+
     public List<HotelResponseDto> getAvailableHotels(HotelListRequestDto request) {
 
         if (request.checkOutDate().isBefore(request.checkInDate())
@@ -37,7 +51,7 @@ public class HotelServiceImpl implements HotelService{
                     request.checkInDate(),
                     request.checkOutDate()
             );
-            return hotelMapper.toDto(hotelList);
+            return hotelMapper.toHotelResponseDto(hotelList);
         }
 
         List<Hotel> hotelList = hotelRepository.getAvailableHotelsWithFacilities(
@@ -47,7 +61,7 @@ public class HotelServiceImpl implements HotelService{
                 request.facilities(),
                 request.facilities().size()
         );
-        return hotelMapper.toDto(hotelList);
+        return hotelMapper.toHotelResponseDto(hotelList);
     }
 
     public HotelResponseDto getHotel(Long hotelId) {
@@ -56,20 +70,22 @@ public class HotelServiceImpl implements HotelService{
                HotelDoesNotExistException::new
        );
 
-       return hotelMapper.toDto(hotel);
+       return hotelMapper.toHotelResponseDto(hotel);
+    }
+
+    public HotelResponseFullDataDto getHotelWithFullData(Long hotelId) {
+
+        Hotel hotel = hotelRepository.findByIdAndFetchOwner(hotelId).orElseThrow(
+                HotelDoesNotExistException::new
+        );
+
+        return hotelMapper.toHotelResponseFullDataDto(hotel);
     }
 
     @Transactional
-    public HotelBasicInfoDto addHotel(AddHotelRequestDto request) {
+    public HotelBasicInfoDto addHotel(HotelRequestDto request) {
 
-        User owner = userRepository.findById(request.ownerId()).orElseThrow(
-                UserNotFoundException::new
-        );
-
-        if (request.checkInUntil().isBefore(request.checkInFrom())
-            || request.checkOutUntil().isAfter(request.checkInFrom())) {
-            throw new InvalidTimeRangeException();
-        }
+        User owner = prepareForEditOrAddHotel(request);
 
         if (hotelRepository.existsHotelsByCityNameAndStreetAndBuildingNumber(
                 request.cityName(),
@@ -85,9 +101,23 @@ public class HotelServiceImpl implements HotelService{
         return hotelMapper.toHotelBasicInfoDto(saved);
     }
 
+    @Transactional
+    public HotelBasicInfoDto editHotel(Long hotelId, HotelRequestDto request) {
+
+        Hotel hotelToEdit = hotelRepository.findById(hotelId).orElseThrow(
+                HotelDoesNotExistException::new
+        );
+        User owner = prepareForEditOrAddHotel(request);
+        Hotel hotel = hotelMapper.toEntity(request, owner, hotelToEdit);
+
+        return hotelMapper.toHotelBasicInfoDto(hotel);
+    }
+
     public PageResponse<HotelBasicInfoDto> getAllHotels(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Hotel> pageWithHotels = hotelRepository.findAll(pageable);
+        Page<Hotel> pageWithHotels = hotelRepository.findAllByOrderByIdAsc(pageable);
         return hotelMapper.toPage(pageWithHotels);
     }
+
+
 }

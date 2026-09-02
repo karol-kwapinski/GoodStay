@@ -32,7 +32,7 @@ public class HotelController {
     }
 
     @PostMapping("/addHotel")
-    public ResponseEntity<HotelBasicInfoDto> addHotel(@Valid @RequestBody AddHotelRequestDto request) {
+    public ResponseEntity<HotelBasicInfoDto> addHotel(@Valid @RequestBody HotelRequestDto request) {
         return ResponseEntity.ok(hotelService.addHotel(request));
     }
 
@@ -40,5 +40,18 @@ public class HotelController {
     public ResponseEntity<PageResponse<HotelBasicInfoDto>> getHotels(
             @RequestParam("pageNumber") int pageNumber, @RequestParam("pageSize") int pageSize) {
         return ResponseEntity.ok(hotelService.getAllHotels(pageNumber, pageSize));
+    }
+
+    @PutMapping("/editHotel/{hotelId}")
+    public ResponseEntity<HotelBasicInfoDto> editHotel(
+            @PathVariable("hotelId") Long hotelId,
+            @RequestBody HotelRequestDto request) {
+        return ResponseEntity.ok(hotelService.editHotel(hotelId, request));
+    }
+
+    @GetMapping("/getHotelWithFullData/{hotelId}")
+    public ResponseEntity<HotelResponseFullDataDto> getHotelWithFullData(
+            @PathVariable("hotelId") Long hotelId) {
+        return ResponseEntity.ok(hotelService.getHotelWithFullData(hotelId));
     }
 }

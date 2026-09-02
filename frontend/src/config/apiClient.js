@@ -34,8 +34,16 @@ export const getApi = async (url, config = {}) => {
 
 export const postApi = async (url, data = undefined, config = {}) => {
     try {
-        console.log(data);
         const response = await axiosClient.post(url, data, config);
+        return response.data;
+    } catch (error) {
+        handleAxiosError(error);
+    }
+}
+
+export const putAPI = async (url, data = undefined, config = {}) => {
+    try {
+        const response = await axiosClient.put(url, data, config);
         return response.data;
     } catch (error) {
         handleAxiosError(error);
