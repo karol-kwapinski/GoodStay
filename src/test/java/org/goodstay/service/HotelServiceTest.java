@@ -5,7 +5,6 @@ import org.goodstay.exception.*;
 import org.goodstay.mapper.HotelMapper;
 import org.goodstay.model.Hotel;
 import org.goodstay.model.User;
-import org.goodstay.model.UserRole;
 import org.goodstay.repository.HotelRepository;
 import org.goodstay.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -46,8 +44,8 @@ public class HotelServiceTest {
     @InjectMocks
     private HotelServiceImpl hotelService;
 
-    private AddHotelRequestDto createValidAddHotelRequestDto(User owner) {
-        return new AddHotelRequestDto(
+    private HotelRequestDto createValidHotelRequestDto(User owner) {
+        return new HotelRequestDto(
                 "Warsaw hotel",
                 "Warsaw",
                 "Mickiewicza",
@@ -65,7 +63,7 @@ public class HotelServiceTest {
         return Stream.of(
                 Arguments.of(
                     "Check in from time is after check in until time",
-                        new AddHotelRequestDto(
+                        new HotelRequestDto(
                                 "Warsaw hotel",
                                 "Warsaw",
                                 "Mickiewicza",
@@ -80,7 +78,7 @@ public class HotelServiceTest {
                 ),
                 Arguments.of(
                         "Check out time is before check in from time",
-                        new AddHotelRequestDto(
+                        new HotelRequestDto(
                                 "Warsaw hotel",
                                 "Warsaw",
                                 "Mickiewicza",
@@ -126,7 +124,7 @@ public class HotelServiceTest {
                 request.checkOutDate()))
                 .thenReturn(listOfHotels);
 
-        when(hotelMapper.toDto(listOfHotels))
+        when(hotelMapper.toHotelResponseDto(listOfHotels))
                 .thenReturn(List.of(response));
 
         List<HotelResponseDto> hotelList = hotelService.getAvailableHotels(request);
@@ -140,7 +138,7 @@ public class HotelServiceTest {
                 request.checkInDate(),
                 request.checkOutDate());
 
-        verify(hotelMapper).toDto(listOfHotels);
+        verify(hotelMapper).toHotelResponseDto(listOfHotels);
     }
 
     @Test
@@ -162,7 +160,7 @@ public class HotelServiceTest {
                 request.checkOutDate()
         );
 
-        verify(hotelMapper, never()).toDto(anyList());
+        verify(hotelMapper, never()).toHotelResponseDto(anyList());
     }
 
     @Test
@@ -183,7 +181,7 @@ public class HotelServiceTest {
         when(hotelRepository.findById(1L))
                 .thenReturn(Optional.of(hotel));
 
-        when(hotelMapper.toDto(hotel))
+        when(hotelMapper.toHotelResponseDto(hotel))
                 .thenReturn(expected);
 
         HotelResponseDto response = hotelService.getHotel(1L);
@@ -191,7 +189,7 @@ public class HotelServiceTest {
         assertEquals(expected, response);
 
         verify(hotelRepository).findById(1L);
-        verify(hotelMapper).toDto(hotel);
+        verify(hotelMapper).toHotelResponseDto(hotel);
     }
 
     @Test
@@ -211,7 +209,7 @@ public class HotelServiceTest {
 
         Hotel hotel = new Hotel();
 
-        AddHotelRequestDto request = createValidAddHotelRequestDto(owner);
+        HotelRequestDto request = createValidHotelRequestDto(owner);
 
         HotelBasicInfoDto expected = new HotelBasicInfoDto(
                 1L,
@@ -247,7 +245,7 @@ public class HotelServiceTest {
         User owner = new User();
         owner.setId(1L);
 
-        AddHotelRequestDto request = createValidAddHotelRequestDto(owner);
+        HotelRequestDto request = createValidHotelRequestDto(owner);
 
         assertThrows(UserNotFoundException.class,
                 () -> hotelService.addHotel(request));
@@ -261,7 +259,7 @@ public class HotelServiceTest {
     @MethodSource("invalidTimeRangeAddHotelRequests")
     void shouldThrowInvalidTimeRangeException(
             String description,
-            AddHotelRequestDto request
+            HotelRequestDto request
     ) {
         User user = new User();
 
@@ -284,7 +282,7 @@ public class HotelServiceTest {
 
         Hotel hotel = new Hotel();
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -338,7 +336,7 @@ public class HotelServiceTest {
 
     @Test
     void shouldThrowUserNotFoundException() {
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -363,7 +361,7 @@ public class HotelServiceTest {
     void shouldThrowInvalidTimeRangeException() {
         User user = new User();
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -391,7 +389,7 @@ public class HotelServiceTest {
     void shouldThrowHotelWithSameLocationDataAlreadyExistsException() {
         User user = new User();
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -474,6 +472,102 @@ public class HotelServiceTest {
 
         verify(hotelRepository).findAll(PageRequest.of(0, 10));
         verify(hotelMapper).toPage(expectedPage);
+    }
+
+    @Test
+    void shouldEditHotel() {
+        User owner = new User();
+        owner.setId(1L);
+
+        Hotel hotel = new Hotel();
+        hotel.setId(1L);
+
+        HotelRequestDto request = createValidHotelRequestDto(owner);
+
+        Hotel hotelAfterEdit = new Hotel();
+        hotel.setId(hotel.getId());
+        hotel.setName(request.name());
+        hotel.setStreet(request.cityName());
+
+        HotelBasicInfoDto expected = new HotelBasicInfoDto(
+                hotelAfterEdit.getId(),
+                hotelAfterEdit.getName(),
+                hotelAfterEdit.getCityName()
+        );
+
+        when(hotelRepository.findById(hotel.getId()))
+                .thenReturn(Optional.of(hotel));
+
+        when(userRepository.findById(owner.getId()))
+                .thenReturn(Optional.of(owner));
+
+        when(hotelMapper.toEntity(request, owner, hotel))
+                .thenReturn(hotelAfterEdit);
+
+        when(hotelMapper.toHotelBasicInfoDto(hotelAfterEdit))
+                .thenReturn(expected);
+
+        HotelBasicInfoDto response = hotelService.editHotel(hotel.getId(), request);
+        assertEquals(expected, response);
+
+        verify(hotelRepository).findById(owner.getId());
+        verify(userRepository).findById(owner.getId());
+        verify(hotelMapper).toEntity(request, owner, hotel);
+        verify(hotelMapper).toHotelBasicInfoDto(hotelAfterEdit);
+    }
+
+    @Test
+    void shouldThrowHotelDoesNotExistException() {
+        User owner = new User();
+        owner.setId(1L);
+
+        HotelRequestDto request = createValidHotelRequestDto(owner);
+
+        assertThrows(HotelDoesNotExistException.class,
+                () -> hotelService.editHotel(1L, request));
+
+        verify(hotelRepository).findById(1L);
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(hotelMapper);
+    }
+
+    @Test
+    void shouldReturnHotelWithFullData() {
+        Hotel hotel = new Hotel();
+
+        HotelResponseFullDataDto expected = new HotelResponseFullDataDto(
+                "Great hotel",
+                "Warsaw",
+                "Bokiewicza",
+                "67",
+                3,
+                LocalTime.of(12, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(11, 0, 0),
+                "Good hotels",
+                1L
+        );
+
+        when(hotelRepository.findByIdAndFetchOwner(1L))
+                .thenReturn(Optional.of(hotel));
+
+        when(hotelMapper.toHotelResponseFullDataDto(hotel))
+                .thenReturn(expected);
+
+        HotelResponseFullDataDto response = hotelService.getHotelWithFullData(1L);
+        assertEquals(expected, response);
+
+        verify(hotelRepository).findByIdAndFetchOwner(1L);
+        verify(hotelMapper).toHotelResponseFullDataDto(hotel);
+    }
+
+    @Test
+    void shouldThrowHotelDoesNotExistExceptionWhenFetchingHotelWithFullData() {
+        assertThrows(HotelDoesNotExistException.class,
+                () -> hotelService.getHotelWithFullData(1L));
+
+        verify(hotelRepository).findByIdAndFetchOwner(1L);
+        verifyNoInteractions(hotelMapper);
     }
 
  }

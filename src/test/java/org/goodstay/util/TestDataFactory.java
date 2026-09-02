@@ -43,7 +43,7 @@ public class TestDataFactory {
                 "14B",
                 LocalTime.of(12, 0, 0),
                 LocalTime.of(21, 0, 0),
-                LocalTime.of(15, 0, 0),
+                LocalTime.of(10, 0, 0),
                 owner
         );
     }

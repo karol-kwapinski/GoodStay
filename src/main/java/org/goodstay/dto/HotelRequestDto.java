@@ -7,7 +7,7 @@ import org.hibernate.validator.constraints.Range;
 
 import java.time.LocalTime;
 
-public record AddHotelRequestDto(
+public record HotelRequestDto(
 
         @NotNull
         @NotBlank

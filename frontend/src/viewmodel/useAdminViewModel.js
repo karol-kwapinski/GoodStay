@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {addHotel, getHotels} from "../model/hotelAPI.js";
+import {addHotel, editHotel, getHotels, getHotelWithFullDataById} from "../model/hotelAPI.js";
 import {getAllHotelOwnersEmails} from "../model/userAPI.js";
 
 export function useAdminViewModel() {
@@ -19,13 +19,39 @@ export function useAdminViewModel() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [addHotelForm, setAddHotelForm] = useState(initialForm);
-    const [isFormVisible, setIsFormVisible] = useState(false);
+    const [editHotelForms, setEditHotelForms] = useState({});
+
+    const [isAddHotelFormVisible, setIsAddHotelFormVisible] = useState(false);
+    const [isEditHotelFormVisible, setIsEditHotelFormVisible] = useState({});
     const [hotelOwnersEmails, setHotelOwnerEmails] = useState([]);
     const [hotels, setHotels] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [numberOfPages, setNumberOfPages] = useState();
 
-    const handleFormVisibility = () => setIsFormVisible(prev => !prev);
+    const handleAddHotelFormVisibility = () => setIsAddHotelFormVisible(prev => !prev);
+
+    const handleEditHotelFormVisibility = (hotelId) => {
+        const isVisible = isEditHotelFormVisible[hotelId];
+
+        if (isVisible === undefined) {
+            fetchHotelWithFullData(hotelId);
+        }
+
+        setIsEditHotelFormVisible(prev => ({
+            ...prev,
+            [hotelId]: !prev[hotelId]
+        }));
+    };
+
+    const handleChangeEditHotelForm = (hotelId) => (event) => {
+        setEditHotelForms(prev => ({
+            ...prev,
+            [hotelId]: {
+                ...prev[hotelId],
+                [event.target.name]: event.target.value
+            }
+        }))
+    }
 
     const handleChangeAddHotelForm = (event) => {
         setAddHotelForm(prev => ({
@@ -88,20 +114,48 @@ export function useAdminViewModel() {
         }
     }
 
-    const handleAddHotel = async (event) => {
+    const handleAddEditHotel = async (event, hotelId) => {
         event.preventDefault();
 
         try {
-            const data = {
-                ...addHotelForm,
-                stars: Number(addHotelForm.stars),
-                ownerId: Number(addHotelForm.ownerId)
+
+            if (hotelId === null) {
+
+                const data = {
+                    ...addHotelForm,
+                    stars: Number(addHotelForm.stars),
+                    ownerId: Number(addHotelForm.ownerId)
+                }
+
+                const addedHotel = await addHotel(data);
+                setHotels(prev => [...prev, addedHotel]);
+                setError(null);
+                setAddHotelForm(initialForm);
+                setIsAddHotelFormVisible(false);
             }
-            const addedHotel = await addHotel(data);
-            setHotels(prev => [...prev, addedHotel]);
-            setError(null);
-            setAddHotelForm(initialForm);
-            setIsFormVisible(false);
+
+            else {
+                const data = {
+                    ...editHotelForms[hotelId],
+                    stars: Number(editHotelForms[hotelId].stars),
+                    ownerId: Number(editHotelForms[hotelId].ownerId)
+                }
+
+                const editedHotel = await editHotel(data, hotelId);
+
+                setHotels(prev =>
+                    prev.map(hotel =>
+                        hotel.id === hotelId ? editedHotel : hotel
+                    )
+                );
+
+                setError(null);
+                setIsEditHotelFormVisible(prev => ({
+                    ...prev,
+                    [hotelId]: false
+                }));
+            }
+
         } catch (error) {
             switch(error?.code) {
                 case "METHOD_ARGUMENT_NOT_VALID":
@@ -128,16 +182,44 @@ export function useAdminViewModel() {
         }
     }
 
+    const fetchHotelWithFullData = async (hotelId) => {
+        try {
+            const data = await getHotelWithFullDataById(hotelId);
+            setEditHotelForms((prev) => ({
+                ...prev,
+                [hotelId]: data
+            }));
+        } catch (error) {
+            switch(error?.code) {
+                case "HOTEL_DOES_NOT_EXIST":
+                    setError("Hotel does not exist")
+                    break
+                case "SERVER_UNAVAILABLE":
+                    setError("Server is unavailable");
+                    break
+                default:
+                    setError("Unknown error has occurred");
+            }
+        }
+    }
+
+
     return {
         error,
         addHotelForm,
-        isFormVisible,
+        isAddHotelFormVisible,
         hotelOwnersEmails,
         loading,
         hotels,
+        currentPage,
+        numberOfPages,
+        isEditHotelFormVisible,
+        editHotelForms,
         handleChangeAddHotelForm,
-        handleAddHotel,
-        handleFormVisibility,
-        fetchHotels
+        handleAddEditHotel,
+        handleAddHotelFormVisibility,
+        fetchHotels,
+        handleEditHotelFormVisibility,
+        handleChangeEditHotelForm
     }
 }

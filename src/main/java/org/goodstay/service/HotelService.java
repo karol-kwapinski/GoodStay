@@ -8,6 +8,8 @@ public interface HotelService {
 
     List<HotelResponseDto> getAvailableHotels(HotelListRequestDto request);
     HotelResponseDto getHotel(Long hotelId);
-    HotelBasicInfoDto addHotel(AddHotelRequestDto request);
+    HotelResponseFullDataDto getHotelWithFullData(Long hotelId);
+    HotelBasicInfoDto addHotel(HotelRequestDto request);
+    HotelBasicInfoDto editHotel(Long hotelId, HotelRequestDto request);
     PageResponse<HotelBasicInfoDto> getAllHotels(int page, int size);
 }

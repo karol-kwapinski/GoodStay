@@ -13,9 +13,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -25,10 +22,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -199,7 +198,7 @@ public class HotelIntegrationTest {
     }
 
     @Test
-    void shouldThrowHotelDoesNotExistException() {
+    void shouldThrowHotelDoesNotExistExceptionWhenFetchingHotel() {
         assertThrows(HotelDoesNotExistException.class,
                 () -> hotelService.getHotel(999L));
     }
@@ -212,7 +211,7 @@ public class HotelIntegrationTest {
                 UserRole.HOTEL_OWNER
         );
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -248,7 +247,7 @@ public class HotelIntegrationTest {
 
     @Test
     void shouldThrowUserNotFoundException() {
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -272,7 +271,7 @@ public class HotelIntegrationTest {
                 UserRole.HOTEL_OWNER
         );
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -309,7 +308,7 @@ public class HotelIntegrationTest {
                 owner
         );
 
-        AddHotelRequestDto request = new AddHotelRequestDto(
+        HotelRequestDto request = new HotelRequestDto(
                 "Great hotel",
                 "Cracow",
                 "Mickiewicza",
@@ -402,6 +401,105 @@ public class HotelIntegrationTest {
         PageResponse<HotelBasicInfoDto> response = hotelService.getAllHotels(0, 10);
 
         assertEquals(expectedResponse, response);
+    }
+
+    @Test
+    void shouldEditHotel() {
+        User owner = testDataFactory.createUser(
+                "jan.kowalski@gmail.com",
+                UserRole.HOTEL_OWNER
+        );
+
+        Hotel hotel = testDataFactory.createHotelWithData(owner);
+
+        HotelRequestDto request = new HotelRequestDto(
+                "Great hotel",
+                hotel.getCityName(),
+                hotel.getStreet(),
+                hotel.getBuildingNumber(),
+                hotel.getStars(),
+                LocalTime.of(13, 0, 0),
+                hotel.getCheckInUntil(),
+                hotel.getCheckOutUntil(),
+                hotel.getBrand(),
+                owner.getId()
+        );
+
+        HotelBasicInfoDto expected = new HotelBasicInfoDto(
+                hotel.getId(),
+                request.name(),
+                request.cityName()
+        );
+
+        HotelBasicInfoDto response = hotelService.editHotel(hotel.getId(), request);
+
+        Hotel editedHotel = hotelRepository.findById(hotel.getId()).orElseThrow();
+
+        assertEquals(request.name(), editedHotel.getName());
+        assertEquals(request.cityName(), editedHotel.getCityName());
+        assertEquals(request.street(), editedHotel.getStreet());
+        assertEquals(request.buildingNumber(), editedHotel.getBuildingNumber());
+        assertEquals(request.stars(), editedHotel.getStars());
+        assertEquals(request.checkInFrom(), editedHotel.getCheckInFrom());
+        assertEquals(request.checkInUntil(), editedHotel.getCheckInUntil());
+        assertEquals(request.checkOutUntil(), editedHotel.getCheckOutUntil());
+        assertEquals(request.brand(), editedHotel.getBrand());
+        assertEquals(request.ownerId(), editedHotel.getOwner().getId());
+
+        assertEquals(expected, response);
+    }
+
+    @Test
+    void shouldThrowHotelDoesNotExistExceptionWhenEditingHotel() {
+
+        HotelRequestDto request = new HotelRequestDto(
+                "Good hotel",
+                "Warsaw",
+                "Mickiewicza",
+                "29B",
+                5,
+                LocalTime.of(14, 0, 0),
+                LocalTime.of(21, 0, 0),
+                LocalTime.of(9, 0, 0),
+                "Great hotels",
+                1L
+        );
+
+        assertThrows(HotelDoesNotExistException.class,
+                () -> hotelService.editHotel(999L, request));
+    }
+
+    @Test
+    void shouldReturnHotelWithFullData() {
+
+        User owner = testDataFactory.createUser(
+                "jan.nowak@gmail.com",
+                UserRole.HOTEL_OWNER
+        );
+
+        Hotel hotel = testDataFactory.createHotelWithData(owner);
+
+        HotelResponseFullDataDto expected = new HotelResponseFullDataDto(
+                hotel.getName(),
+                hotel.getCityName(),
+                hotel.getStreet(),
+                hotel.getBuildingNumber(),
+                hotel.getStars(),
+                hotel.getCheckInFrom(),
+                hotel.getCheckInUntil(),
+                hotel.getCheckOutUntil(),
+                hotel.getBrand(),
+                hotel.getOwner().getId()
+        );
+
+        HotelResponseFullDataDto response = hotelService.getHotelWithFullData(hotel.getId());
+        assertEquals(expected, response);
+    }
+
+    @Test
+    void shouldThrowHotelDoesNotExistExceptionWhenFetchingHotelWithFullData() {
+        assertThrows(HotelDoesNotExistException.class,
+                () -> hotelService.getHotelWithFullData(79L));
     }
 
 }

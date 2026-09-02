@@ -1,9 +1,6 @@
 package org.goodstay.mapper;
 
-import org.goodstay.dto.AddHotelRequestDto;
-import org.goodstay.dto.HotelBasicInfoDto;
-import org.goodstay.dto.HotelResponseDto;
-import org.goodstay.dto.PageResponse;
+import org.goodstay.dto.*;
 import org.goodstay.model.Hotel;
 import org.goodstay.model.User;
 import org.springframework.data.domain.Page;
@@ -14,7 +11,7 @@ import java.util.List;
 @Component
 public class HotelMapper {
 
-    public HotelResponseDto toDto(Hotel hotel) {
+    public HotelResponseDto toHotelResponseDto(Hotel hotel) {
         return new HotelResponseDto(
                 hotel.getId(),
                 hotel.getName(),
@@ -26,14 +23,33 @@ public class HotelMapper {
         );
     }
 
-    public List<HotelResponseDto> toDto(List<Hotel> hotelList) {
+    public HotelResponseFullDataDto toHotelResponseFullDataDto(Hotel hotel) {
+        return new HotelResponseFullDataDto(
+                hotel.getName(),
+                hotel.getCityName(),
+                hotel.getStreet(),
+                hotel.getBuildingNumber(),
+                hotel.getStars(),
+                hotel.getCheckInFrom(),
+                hotel.getCheckInUntil(),
+                hotel.getCheckOutUntil(),
+                hotel.getBrand(),
+                hotel.getOwner().getId()
+        );
+    }
+
+    public List<HotelResponseDto> toHotelResponseDto(List<Hotel> hotelList) {
         return hotelList.stream()
-                .map(this::toDto)
+                .map(this::toHotelResponseDto)
                 .toList();
     }
 
-    public Hotel toEntity(AddHotelRequestDto request, User owner) {
+    public Hotel toEntity(HotelRequestDto request, User owner) {
         Hotel hotel = new Hotel();
+        return toEntity(request, owner, hotel);
+    }
+
+    public Hotel toEntity(HotelRequestDto request, User owner, Hotel hotel) {
         hotel.setName(request.name());
         hotel.setCityName(request.cityName());
         hotel.setStreet(request.street());
@@ -65,7 +81,7 @@ public class HotelMapper {
                         hotel.getCityName()))
                 .toList();
 
-        return new PageResponse<HotelBasicInfoDto>(
+        return new PageResponse<>(
                 content,
                 page.getSize(),
                 page.getNumber(),
