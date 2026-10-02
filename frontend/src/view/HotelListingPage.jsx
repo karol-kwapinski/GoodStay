@@ -1,6 +1,7 @@
 import {useHotelListingViewModel} from "../viewmodel/useHotelListingViewModel.js";
 import {Link} from "react-router-dom";
 import Header from "./components/Header.jsx";
+import HotelMap from "./components/HotelMap.jsx";
 
 export default function HotelListingPage() {
 
@@ -101,6 +102,11 @@ export default function HotelListingPage() {
                             flex: 1
                         }}
                     >
+                        <HotelMap
+                            hotels={vm.hotelList}
+                            linkQuery={`?checkInDate=${vm.form.checkInDate}&checkOutDate=${vm.form.checkOutDate}`}
+                        />
+
                         {vm.hotelList.map((hotel) => (
                             <Link
                                 key={hotel.id}
@@ -113,7 +119,7 @@ export default function HotelListingPage() {
                                     <h2>{hotel.name}</h2>
                                     <p>City: {hotel.cityName}</p>
                                     <p>
-                                        Address: {hotel.strett} {hotel.buildingNumber}
+                                        Address: {hotel.street} {hotel.buildingNumber}
                                     </p>
                                     <p>Stars: {hotel.stars}</p>
                                     <p>Number of ratings: {hotel.numberOfRatings}</p>

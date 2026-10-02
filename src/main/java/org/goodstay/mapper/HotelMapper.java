@@ -19,7 +19,9 @@ public class HotelMapper {
                 hotel.getStreet(),
                 hotel.getBuildingNumber(),
                 hotel.getStars(),
-                hotel.getNumberOfRatings()
+                hotel.getNumberOfRatings(),
+                hotel.getLatitude(),
+                hotel.getLongitude()
         );
     }
 

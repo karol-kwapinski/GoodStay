@@ -127,7 +127,9 @@ public class HotelControllerTest {
                 "Mickiewicza",
                 "12A",
                 4,
-                0
+                0,
+                null,
+                null
         );
 
         when(hotelService.getAvailableHotels(request))

@@ -1,5 +1,6 @@
 import {useHotelViewModel} from "../viewmodel/useHotelViewModel.js";
 import Header from "./components/Header.jsx";
+import HotelMap from "./components/HotelMap.jsx";
 
 export default function HotelPage() {
 
@@ -17,6 +18,8 @@ export default function HotelPage() {
                     <p>Building number: {vm.hotel.buildingNumber}</p>
                     <p>{vm.hotel.stars} star hotel</p>
                     <p>Hotel has {vm.hotel.numberOfRatings} ratings</p>
+
+                    <HotelMap hotels={[vm.hotel]} height="300px" />
                 </div>
             )}
 

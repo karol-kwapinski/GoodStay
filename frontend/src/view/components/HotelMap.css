@@ -1,0 +1,61 @@
+/* Custom hotel pin: a teardrop with the star rating, coloured by stars */
+.hotel-marker {
+    background: none;
+    border: none;
+}
+
+.hotel-pin {
+    --pin-color: #2563eb;
+    position: relative;
+    box-sizing: border-box;
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--pin-color);
+    transform: rotate(-45deg);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+    border: 2px solid #fff;
+    transition: transform 0.15s ease;
+}
+
+.hotel-pin__label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(45deg);
+    color: #fff;
+    font: 700 13px/1 system-ui, sans-serif;
+    white-space: nowrap;
+}
+
+.hotel-pin--stars-1 { --pin-color: #64748b; }
+.hotel-pin--stars-2 { --pin-color: #0891b2; }
+.hotel-pin--stars-3 { --pin-color: #2563eb; }
+.hotel-pin--stars-4 { --pin-color: #7c3aed; }
+.hotel-pin--stars-5 { --pin-color: #d97706; }
+
+.hotel-marker:hover .hotel-pin {
+    transform: rotate(-45deg) scale(1.15);
+}
+
+.hotel-marker:hover {
+    z-index: 1000 !important;
+}
+
+.hotel-popup {
+    font: 14px/1.4 system-ui, sans-serif;
+}
+
+.hotel-popup__name {
+    display: block;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.hotel-popup__stars {
+    color: #d97706;
+    letter-spacing: 1px;
+}

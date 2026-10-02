@@ -7,5 +7,7 @@ public record HotelResponseDto(
         String street,
         String buildingNumber,
         Integer stars,
-        Integer numberOfRatings
+        Integer numberOfRatings,
+        Double latitude,
+        Double longitude
 ) {}
