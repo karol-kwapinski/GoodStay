@@ -115,7 +115,9 @@ public class HotelServiceTest {
             "Mickiewicza",
             "24B",
             3,
-            0
+            0,
+            null,
+            null
         );
 
         when(hotelRepository.getAvailableHotels(
@@ -175,7 +177,9 @@ public class HotelServiceTest {
                 "Mickiewicza",
                 "18B",
                 5,
-                0
+                0,
+                null,
+                null
         );
 
         when(hotelRepository.findById(1L))

@@ -143,7 +143,9 @@ public class HotelIntegrationTest {
                         hotel1.getStreet(),
                         hotel1.getBuildingNumber(),
                         hotel1.getStars(),
-                        hotel1.getNumberOfRatings()
+                        hotel1.getNumberOfRatings(),
+                        hotel1.getLatitude(),
+                        hotel1.getLongitude()
                 ),
                 new HotelResponseDto(
                         hotel2.getId(),
@@ -152,7 +154,9 @@ public class HotelIntegrationTest {
                         hotel2.getStreet(),
                         hotel2.getBuildingNumber(),
                         hotel2.getStars(),
-                        hotel2.getNumberOfRatings()
+                        hotel2.getNumberOfRatings(),
+                        hotel2.getLatitude(),
+                        hotel2.getLongitude()
                 )
         );
 
@@ -191,7 +195,9 @@ public class HotelIntegrationTest {
                 hotel.getStreet(),
                 hotel.getBuildingNumber(),
                 hotel.getStars(),
-                hotel.getNumberOfRatings()
+                hotel.getNumberOfRatings(),
+                hotel.getLatitude(),
+                hotel.getLongitude()
         );
 
         assertEquals(expected, response);
